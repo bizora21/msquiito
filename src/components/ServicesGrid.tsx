@@ -14,7 +14,7 @@ export default function ServicesGrid() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {services.map((s) => (
-            <div key={s.id} className="bg-white border border-gray-100 p-3 rounded-md shadow-sm">
+            <div key={s.id} className="bg-white border border-gray-100 p-3 rounded-md shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 animate-in fade-in-50">
               <img src={s.image} alt={s.name} loading="lazy" className="w-full h-36 object-contain rounded-md" />
               <h3 className="mt-3 font-medium">{s.name}</h3>
               <p className="text-sm text-slate-600 mt-1">{s.description}</p>

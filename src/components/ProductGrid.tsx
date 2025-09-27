@@ -1,9 +1,11 @@
 import React from "react";
 import ProductCard from "./ProductCard";
-import { products } from "@/lib/sample-data";
+import { getAllProducts } from "@/lib/catalog";
 
 export default function ProductGrid({ limit }: { limit?: number }) {
-  const items = typeof limit === "number" ? products.slice(0, limit) : products;
+  const items = getAllProducts();
+  const list = typeof limit === "number" ? items.slice(0, limit) : items;
+
   return (
     <section className="py-6 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4">
@@ -13,8 +15,10 @@ export default function ProductGrid({ limit }: { limit?: number }) {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {items.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {list.map((p) => (
+            <div key={p.id} className="animate-in fade-in-50">
+              <ProductCard product={p} />
+            </div>
           ))}
         </div>
       </div>

@@ -7,7 +7,7 @@ export default function Hero() {
     <section className="pt-20 pb-8 bg-white">
       <div className="max-w-5xl mx-auto px-4">
         <div className="grid gap-6 md:grid-cols-2 items-center">
-          <div>
+          <div className="animate-in fade-in-50">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
               LojaRápida — Comprar local ficou mais fácil
             </h1>
@@ -17,10 +17,10 @@ export default function Hero() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/produtos">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Ver Produtos</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white transition-transform hover:scale-[1.02]">Ver Produtos</Button>
               </Link>
               <Link to="/vendedor/register">
-                <Button variant="outline">Seja um Vendedor</Button>
+                <Button variant="outline" className="transition-transform hover:scale-[1.02]">Seja um Vendedor</Button>
               </Link>
             </div>
 
@@ -31,7 +31,7 @@ export default function Hero() {
             </ul>
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center animate-in zoom-in-50">
             <div className="w-full max-w-md bg-gradient-to-br from-blue-50 to-green-50 rounded-lg p-4 shadow-sm">
               <img
                 src="/placeholder.svg"

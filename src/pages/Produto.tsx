@@ -1,12 +1,12 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { getProductById } from "@/lib/sample-data";
+import { getAnyProductById } from "@/lib/catalog";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
 
 export default function Produto() {
   const { id } = useParams<{ id: string }>();
-  const product = getProductById(id);
+  const product = getAnyProductById(id);
 
   React.useEffect(() => {
     if (product) {
@@ -28,19 +28,15 @@ export default function Produto() {
   }
 
   const onOrder = () => {
-    try {
-      const current = Number(localStorage.getItem("cartCount") || "0");
-      localStorage.setItem("cartCount", String(current + 1));
-    } catch {}
     showSuccess("Pedido confirmado (pagamento na entrega)");
   };
 
   return (
     <main className="pt-24 max-w-4xl mx-auto px-4">
-      <div className="bg-white border rounded-md p-6">
+      <div className="bg-white border rounded-md p-6 animate-in fade-in-50">
         <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <img src={product.image} alt={product.name} loading="lazy" className="w-full h-80 object-contain rounded-md" />
+          <div className="bg-white rounded-md">
+            <img src={product.image || "/placeholder.svg"} alt={product.name} loading="lazy" className="w-full h-80 object-contain rounded-md" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{product.name}</h1>

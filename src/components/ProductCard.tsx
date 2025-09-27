@@ -15,7 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col">
+    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
       <Link to={`/produto/${product.id}`} className="block">
         <img
           src={product.image || "/placeholder.svg"}
