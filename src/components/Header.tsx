@@ -58,6 +58,9 @@ export default function Header() {
           <Link to="/servicos" className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900">
             Serviços
           </Link>
+          <Link to="/blog" className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900">
+            Blog
+          </Link>
 
           <UserMenu />
 
@@ -93,6 +96,7 @@ export default function Header() {
           <div className="flex flex-col gap-2">
             <Link to="/produtos" className="py-2">Produtos</Link>
             <Link to="/servicos" className="py-2">Serviços</Link>
+            <Link to="/blog" className="py-2">Blog</Link>
             <Link to="/cliente/register" className="py-2">Criar conta</Link>
             <Link to="/login" className="py-2">Entrar</Link>
           </div>

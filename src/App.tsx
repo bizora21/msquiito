@@ -4,16 +4,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Blog from "./pages/Blog";
+import Article from "./pages/Article";
 import NotFound from "./pages/NotFound";
 import Produtos from "./pages/Produtos";
 import Produto from "./pages/Produto";
-import VendorRegister from "./pages/VendorRegister";
-import ServiceProviderRegister from "./pages/ServiceProviderRegister";
 import Servicos from "./pages/Servicos";
 import Servico from "./pages/Servico";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import RegisterClient from "./pages/RegisterClient";
+import VendorRegister from "./pages/VendorRegister";
+import ServiceProviderRegister from "./pages/ServiceProviderRegister";
 import DashboardClient from "./pages/DashboardClient";
 import DashboardVendor from "./pages/DashboardVendor";
 import DashboardProvider from "./pages/DashboardProvider";
@@ -29,6 +31,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<Article />} />
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/produto/:id" element={<Produto />} />
           <Route path="/servicos" element={<Servicos />} />
