@@ -15,11 +15,15 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-      <Link to={`/produto/${product.id}`} className="block">
+    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-500">
+      <Link 
+        to={`/produto/${product.id}`} 
+        className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+        aria-label={`Ver detalhes do produto ${product.name}`}
+      >
         <img
           src={product.image || "/placeholder.svg"}
-          alt={product.name}
+          alt={`Imagem do produto ${product.name}`}
           loading="lazy"
           className="w-full h-44 object-contain rounded-md"
         />
@@ -28,15 +32,26 @@ export default function ProductCard({ product }: { product: Product }) {
 
       <div className="mt-2 flex items-center justify-between">
         <div>
-          <div className="text-lg font-semibold text-slate-900">MT {product.price}</div>
+          <div className="text-lg font-semibold text-slate-900" aria-label={`Preço: ${product.price} meticais`}>
+            MT {product.price}
+          </div>
           <div className="text-xs text-slate-500 flex items-center gap-2">
-            <Star size={14} className="text-yellow-500" /> {product.rating ?? "—"}
+            <Star size={14} className="text-yellow-500" aria-hidden="true" />
+            <span aria-label={`Avaliação: ${product.rating ?? "não avaliado"}`}>
+              {product.rating ?? "—"}
+            </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <Button onClick={onAdd} size="sm" className="flex items-center gap-2">
-            <ShoppingCart size={14} /> Adicionar
+          <Button 
+            onClick={onAdd} 
+            size="sm" 
+            className="flex items-center gap-2"
+            aria-label={`Adicionar ${product.name} ao carrinho`}
+          >
+            <ShoppingCart size={14} aria-hidden="true" />
+            Adicionar
           </Button>
         </div>
       </div>
