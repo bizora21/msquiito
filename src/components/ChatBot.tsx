@@ -10,7 +10,7 @@ import { MessageCircle } from "lucide-react";
 
 type Message = { from: "user" | "bot"; text: string };
 
-const WA_LINK = "https://wa.me/258000000000";
+const WA_LINK = "https://wa.me/258863181415";
 
 const SUGGESTIONS = [
   "Prazo de entrega",

@@ -9,8 +9,8 @@ export default function Footer() {
           <h4 className="font-semibold text-lg">LojaRápida</h4>
           <p className="text-sm text-slate-600 mt-2">Apoio a vendedores locais e entregas rápidas em Moçambique.</p>
           <div className="mt-4 text-sm">
-            <div>Contato: <a href="tel:+258000000000" className="text-blue-600">+258 000 000 000</a></div>
-            <div>WhatsApp: <a href="https://wa.me/258000000000" target="_blank" rel="noreferrer" className="text-blue-600">Abrir Chat</a></div>
+            <div>Contato: <a href="tel:+258863181415" className="text-blue-600">+258863181415</a></div>
+            <div>WhatsApp: <a href="https://wa.me/258863181415" target="_blank" rel="noreferrer" className="text-blue-600">Abrir Chat</a></div>
           </div>
         </div>
 

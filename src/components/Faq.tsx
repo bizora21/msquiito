@@ -137,7 +137,7 @@ export default function Faq() {
                 <AccordionContent>
                   Fale conosco no WhatsApp para atendimento rápido:
                   <a
-                    href="https://wa.me/258000000000"
+                    href="https://wa.me/258863181415"
                     target="_blank"
                     rel="noreferrer"
                     className="inline-block ml-1 text-blue-600 underline"
