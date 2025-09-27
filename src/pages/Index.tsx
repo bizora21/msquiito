@@ -4,7 +4,6 @@ import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
 import ServicesGrid from "@/components/ServicesGrid";
 import Footer from "@/components/Footer";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 
 export default function Index() {
   React.useEffect(() => {
@@ -60,12 +59,7 @@ export default function Index() {
             <p className="text-sm text-slate-600 mt-2">Entrega local, suporte por WhatsApp e foco em vendedores moçambicanos.</p>
           </div>
         </section>
-
-        <div className="mt-8">
-          <MadeWithDyad />
-        </div>
       </main>
-
       <Footer />
     </div>
   );

@@ -4,14 +4,13 @@ import { ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
 import type { Product } from "@/lib/sample-data";
+import { useCart } from "@/hooks/use-cart";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const { add } = useCart();
+
   const onAdd = () => {
-    // For demo we just show a toast and increment a simple localStorage counter
-    try {
-      const current = Number(localStorage.getItem("cartCount") || "0");
-      localStorage.setItem("cartCount", String(current + 1));
-    } catch {}
+    add(product.id, 1);
     showSuccess("Adicionado ao carrinho");
   };
 
