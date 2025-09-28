@@ -99,3 +99,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fundo verde claro animado, suave e leve */
+@keyframes green-gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-green {
+  background-image: linear-gradient(180deg, rgba(16,185,129,0.12), rgba(16,185,129,0.06) 40%, rgba(255,255,255,0) 80%);
+  background-size: 200% 200%;
+  animation: green-gradient-move 18s ease-in-out infinite;
+}

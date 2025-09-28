@@ -21,6 +21,7 @@ import DashboardVendor from "./pages/DashboardVendor";
 import DashboardProvider from "./pages/DashboardProvider";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuthProvider from "./components/AuthProvider";
 
 const queryClient = new QueryClient();
 
@@ -30,54 +31,56 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<Article />} />
-          <Route path="/produtos" element={<Produtos />} />
-          <Route path="/produto/:id" element={<Produto />} />
-          <Route path="/servicos" element={<Servicos />} />
-          <Route path="/servico/:id" element={<Servico />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cliente/register" element={<RegisterClient />} />
-          <Route path="/vendedor/register" element={<VendorRegister />} />
-          <Route path="/prestador/register" element={<ServiceProviderRegister />} />
-          <Route
-            path="/dashboard/cliente"
-            element={
-              <ProtectedRoute roles={["client"]}>
-                <DashboardClient />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/vendedor"
-            element={
-              <ProtectedRoute roles={["vendor"]}>
-                <DashboardVendor />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/prestador"
-            element={
-              <ProtectedRoute roles={["provider"]}>
-                <DashboardProvider />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/admin"
-            element={
-              <ProtectedRoute roles={["admin"]}>
-                <DashboardAdmin />
-              </ProtectedRoute>
-            }
-          />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<Article />} />
+            <Route path="/produtos" element={<Produtos />} />
+            <Route path="/produto/:id" element={<Produto />} />
+            <Route path="/servicos" element={<Servicos />} />
+            <Route path="/servico/:id" element={<Servico />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cliente/register" element={<RegisterClient />} />
+            <Route path="/vendedor/register" element={<VendorRegister />} />
+            <Route path="/prestador/register" element={<ServiceProviderRegister />} />
+            <Route
+              path="/dashboard/cliente"
+              element={
+                <ProtectedRoute roles={["client"]}>
+                  <DashboardClient />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/vendedor"
+              element={
+                <ProtectedRoute roles={["vendor"]}>
+                  <DashboardVendor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/prestador"
+              element={
+                <ProtectedRoute roles={["provider"]}>
+                  <DashboardProvider />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <DashboardAdmin />
+                </ProtectedRoute>
+              }
+            />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

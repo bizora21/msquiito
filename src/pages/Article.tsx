@@ -18,7 +18,7 @@ export default function Article() {
 
   if (!article) {
     return (
-      <main className="pt-24 min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <main className="pt-24 min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
         <div className="text-center px-4">
           <HomeButton className="mx-auto max-w-max" />
           <h2 className="text-2xl font-semibold">Artigo não encontrado</h2>
@@ -31,7 +31,7 @@ export default function Article() {
   }
 
   return (
-    <main className="pt-24 max-w-3xl mx-auto px-4 prose prose-slate bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-3xl mx-auto px-4 prose prose-slate bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <article>
         <h1>{article.title}</h1>

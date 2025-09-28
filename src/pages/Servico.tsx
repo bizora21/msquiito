@@ -18,7 +18,7 @@ export default function Servico() {
 
   if (!service) {
     return (
-      <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
         <HomeButton />
         <h2 className="text-xl font-semibold">Serviço não encontrado</h2>
         <Link to="/servicos" className="text-blue-600 mt-2 inline-block">Voltar</Link>
@@ -27,7 +27,7 @@ export default function Servico() {
   }
 
   return (
-    <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <div className="grid md:grid-cols-2 gap-6">

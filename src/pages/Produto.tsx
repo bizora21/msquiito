@@ -19,7 +19,7 @@ export default function Produto() {
 
   if (!product) {
     return (
-      <div className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <div className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
         <div className="max-w-4xl mx-auto px-4">
           <HomeButton />
           <div className="text-center">
@@ -36,7 +36,7 @@ export default function Produto() {
   };
 
   return (
-    <main className="pt-24 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <div className="max-w-4xl mx-auto px-4">
         <HomeButton />
         <div className="bg-white border rounded-md p-6 animate-in fade-in-50">

@@ -16,7 +16,7 @@ export default function Blog() {
   }, []);
 
   return (
-    <main className="pt-24 max-w-5xl mx-auto px-4 space-y-6 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-5xl mx-auto px-4 space-y-6 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <h1 className="text-3xl font-semibold">Blog</h1>
       <div className="grid gap-6 md:grid-cols-2">

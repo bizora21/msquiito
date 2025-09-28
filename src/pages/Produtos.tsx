@@ -16,7 +16,7 @@ export default function Produtos() {
   }, [location.search]);
 
   return (
-    <main className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <div className="max-w-5xl mx-auto px-4">
         <HomeButton />
         <ProductGrid />

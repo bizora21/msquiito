@@ -16,16 +16,15 @@ export default function RegisterClient() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // salva sessão do cliente
+    // salva perfil local (tipo/role); login real é via e-mail (Supabase)
     setSession({ role: "client", name, email, phone: whatsapp, address, altPhone });
     showSuccess("Cadastro de cliente criado!");
     sendSignupNotifications({ name, email, whatsapp, address, altPhone });
-    // direciona a produtos reais
     navigate("/produtos");
   };
 
   return (
-    <main className="pt-24 max-w-xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Criar conta de Cliente</h2>

@@ -1,70 +1,57 @@
 import * as React from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { setSession, type UserRole } from "@/utils/auth";
-import { Button } from "@/components/ui/button";
-import { showSuccess } from "@/utils/toast";
+import { useEffect } from "react";
 import HomeButton from "@/components/HomeButton";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
+import { Link, useSearchParams } from "react-router-dom";
 
 export default function Login() {
-  const [role, setRole] = React.useState<UserRole>("client");
-  const [phone, setPhone] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
   const [search] = useSearchParams();
-  const navigate = useNavigate();
 
-  const redirect = search.get("redirect");
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSession({ role, phone, name, email });
-    showSuccess("Login efetuado!");
-    if (redirect) {
-      navigate(redirect);
-      return;
-    }
-    if (role === "client") navigate("/produtos");
-    if (role === "vendor") navigate("/dashboard/vendedor");
-    if (role === "provider") navigate("/dashboard/prestador");
-    if (role === "admin") navigate("/dashboard/admin");
-  };
+  useEffect(() => {
+    document.title = "Entrar — LojaRápida";
+  }, []);
 
   return (
-    <main className="pt-24 max-w-md mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-md mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h1 className="text-xl font-semibold">Entrar</h1>
-        <p className="text-sm text-slate-600 mt-1">Use seu telefone ou WhatsApp para entrar.</p>
+        <p className="text-sm text-slate-600 mt-1">
+          Acesse com seu e-mail. Enviaremos um link seguro de login (confirmação por e-mail).
+        </p>
 
-        <form onSubmit={onSubmit} className="mt-4 space-y-3">
-          <div>
-            <label className="text-sm block mb-1">Nome</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-3 rounded-md" required />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Telefone/WhatsApp</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-3 rounded-md" required />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Email (opcional)</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-3 rounded-md" />
-          </div>
-          <div>
-            <label className="text-sm block mb-1">Entrar como</label>
-            <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full border px-3 py-3 rounded-md">
-              <option value="client">Cliente</option>
-              <option value="vendor">Vendedor</option>
-              <option value="provider">Prestador de Serviço</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-        <Button type="submit" className="w-full h-11 text-base">Entrar</Button>
-        </form>
-
-        <div className="text-xs text-slate-500 mt-4">
-          Não tem conta? <Link to="/cliente/register" className="text-blue-600">Cadastre-se</Link>
+        <div className="mt-4">
+          <Auth
+            supabaseClient={supabase}
+            providers={[]}
+            localization={{
+              variables: {
+                sign_in: { email_label: "Seu e-mail", email_input_placeholder: "voce@email.com" },
+              },
+            }}
+            view="magic_link"
+            appearance={{
+              theme: ThemeSupa,
+              style: { borderRadius: "8px" },
+              variables: { default: { colors: { brand: "#16a34a", brandAccent: "#22c55e" } } },
+            }}
+            theme="light"
+          />
         </div>
+
+        <div className="text-xs text-slate-500 mt-4 space-y-1">
+          <div>É novo por aqui? <Link to="/cliente/register" className="text-blue-600">Criar conta de Cliente</Link></div>
+          <div>Vender no marketplace? <Link to="/vendedor/register" className="text-blue-600">Cadastro de Vendedor</Link></div>
+          <div>Prestar serviços? <Link to="/prestador/register" className="text-blue-600">Cadastro de Prestador</Link></div>
+        </div>
+
+        {search.get("redirect") && (
+          <div className="mt-3 text-xs text-slate-500">
+            Após entrar, vamos levar você para: <span className="font-medium">{search.get("redirect")}</span>
+          </div>
+        )}
       </div>
     </main>
   );

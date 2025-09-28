@@ -27,7 +27,7 @@ export default function Checkout() {
 
   if (enriched.length === 0) {
     return (
-      <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
         <HomeButton />
         <div className="bg-white border rounded-md p-6">
           <h2 className="text-xl font-semibold">Seu carrinho está vazio</h2>
@@ -66,11 +66,11 @@ export default function Checkout() {
       });
     }
     clear();
-    navigate("/dashboard/cliente"); // direciona ao painel do cliente após confirmar
+    navigate("/dashboard/cliente");
   };
 
   return (
-    <main className="pt-24 max-w-4xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-4xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       {!logged && (
         <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-3 text-sm">
