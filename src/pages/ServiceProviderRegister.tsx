@@ -1,9 +1,10 @@
-import React from "react";
+import * as React from "react";
 import { showSuccess } from "@/utils/toast";
 import { Button } from "@/components/ui/button";
 import HomeButton from "@/components/HomeButton";
 import { setSession } from "@/utils/auth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ServiceProviderRegister() {
   const [name, setName] = React.useState("");
@@ -12,11 +13,59 @@ export default function ServiceProviderRegister() {
   const [phone, setPhone] = React.useState("");
   const navigate = useNavigate();
 
+  // Pré-preencher com dados do Supabase, se disponível
+  React.useEffect(() => {
+    let mounted = true;
+    const fetchSbSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const sb = data?.session;
+        if (sb && mounted) {
+          const user = sb.user;
+          const defaultName =
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            (user?.email?.split("@")[0] ?? "");
+          const defaultEmail = user?.email ?? "";
+          if (!name) setName(defaultName);
+          if (!email) setEmail(defaultEmail);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchSbSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
+      if (!mounted) return;
+      const { data } = await supabase.auth.getSession();
+      const sb = data?.session;
+      if (sb) {
+        const user = sb.user;
+        const nm =
+          user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
+          (user?.email?.split("@")[0] ?? "");
+        const em = user?.email ?? "";
+        if (!name) setName(nm);
+        if (!email) setEmail(em);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      listener?.subscription.unsubscribe();
+    };
+  }, []); // eslint-disable-line
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    showSuccess("Cadastro de prestador recebido! Enviamos uma confirmação ao seu e-mail.");
+    // Notificação clara de confirmação de cadastro (email)
+    showSuccess("Cadastro de Prestador recebido! Enviamos uma mensagem de confirmação ao seu e-mail.");
+    // cria sessão e redireciona ao painel do prestador
     setSession({ role: "provider", name, phone, email });
     navigate("/dashboard/prestador");
+    // limpa formulário
     setName("");
     setService("");
     setEmail("");
@@ -24,7 +73,7 @@ export default function ServiceProviderRegister() {
   };
 
   return (
-    <main className="pt-24 max-w-2xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+    <main className="pt-24 max-w-2xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Cadastro de Prestador de Serviços</h2>
@@ -32,25 +81,50 @@ export default function ServiceProviderRegister() {
 
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <div>
-            <label className="text-sm block mb-1">Nome / Empresa</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <label className="text-sm block mb-1">Nome da Empresa</label>
+            <input
+              aria-label="Nome da Empresa"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
           </div>
           <div>
             <label className="text-sm block mb-1">Serviço oferecido</label>
-            <input value={service} onChange={(e) => setService(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <input
+              aria-label="Serviço oferecido"
+              value={service}
+              onChange={(e) => setService(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
           </div>
           <div>
             <label className="text-sm block mb-1">Telefone/WhatsApp</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <input
+              aria-label="Telefone/WhatsApp"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
           </div>
           <div>
             <label className="text-sm block mb-1">E-mail (para confirmação)</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <input
+              aria-label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
           </div>
 
           <div className="flex items-center gap-3">
             <Button type="submit">Enviar Cadastro</Button>
-            <Button variant="outline" type="button" onClick={() => navigate("/servicos")}>Ajuda</Button>
+            <Button variant="outline" type="button" onClick={() => navigate("/prestador/register")}>Ajuda</Button>
           </div>
         </form>
       </div>
