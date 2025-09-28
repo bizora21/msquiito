@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
 import { setSession } from "@/utils/auth";
 import { useNavigate } from "react-router-dom";
+import HomeButton from "@/components/HomeButton";
 
 export default function RegisterClient() {
   const [name, setName] = React.useState("");
@@ -18,7 +19,8 @@ export default function RegisterClient() {
   };
 
   return (
-    <main className="pt-24 max-w-md mx-auto px-4">
+    <main className="pt-24 max-w-md mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Criar conta de Cliente</h2>
         <form onSubmit={onSubmit} className="mt-4 space-y-3">

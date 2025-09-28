@@ -1,6 +1,7 @@
 import React from "react";
 import { articles } from "@/lib/blog-data";
 import BlogCard from "@/components/BlogCard";
+import HomeButton from "@/components/HomeButton";
 
 export default function Blog() {
   React.useEffect(() => {
@@ -15,7 +16,8 @@ export default function Blog() {
   }, []);
 
   return (
-    <main className="pt-24 max-w-5xl mx-auto px-4 space-y-6">
+    <main className="pt-24 max-w-5xl mx-auto px-4 space-y-6 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <h1 className="text-3xl font-semibold">Blog</h1>
       <div className="grid gap-6 md:grid-cols-2">
         {articles.map((a) => (

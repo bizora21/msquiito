@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import ProductGrid from "@/components/ProductGrid";
+import HomeButton from "@/components/HomeButton";
 
 export default function Produtos() {
   const location = useLocation();
@@ -15,8 +16,11 @@ export default function Produtos() {
   }, [location.search]);
 
   return (
-    <main className="pt-24 min-h-screen">
-      <ProductGrid />
+    <main className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <div className="max-w-5xl mx-auto px-4">
+        <HomeButton />
+        <ProductGrid />
+      </div>
     </main>
   );
 }

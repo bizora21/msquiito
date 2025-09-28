@@ -1,4 +1,4 @@
-export type UserRole = "client" | "vendor" | "provider";
+export type UserRole = "client" | "vendor" | "provider" | "admin";
 
 export type Session = {
   role: UserRole;

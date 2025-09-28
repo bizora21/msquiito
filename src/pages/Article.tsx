@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { getArticleBySlug } from "@/lib/blog-data";
 import { Button } from "@/components/ui/button";
+import HomeButton from "@/components/HomeButton";
 
 export default function Article() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,8 +18,9 @@ export default function Article() {
 
   if (!article) {
     return (
-      <main className="pt-24 min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <main className="pt-24 min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50/60 to-transparent">
+        <div className="text-center px-4">
+          <HomeButton className="mx-auto max-w-max" />
           <h2 className="text-2xl font-semibold">Artigo não encontrado</h2>
           <Link to="/blog">
             <Button className="mt-4">Voltar ao Blog</Button>
@@ -29,7 +31,8 @@ export default function Article() {
   }
 
   return (
-    <main className="pt-24 max-w-3xl mx-auto px-4 prose prose-slate">
+    <main className="pt-24 max-w-3xl mx-auto px-4 prose prose-slate bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <article>
         <h1>{article.title}</h1>
         <p className="text-sm text-slate-500">

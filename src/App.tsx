@@ -19,6 +19,7 @@ import ServiceProviderRegister from "./pages/ServiceProviderRegister";
 import DashboardClient from "./pages/DashboardClient";
 import DashboardVendor from "./pages/DashboardVendor";
 import DashboardProvider from "./pages/DashboardProvider";
+import DashboardAdmin from "./pages/DashboardAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,14 @@ const App = () => (
             element={
               <ProtectedRoute roles={["provider"]}>
                 <DashboardProvider />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/admin"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <DashboardAdmin />
               </ProtectedRoute>
             }
           />

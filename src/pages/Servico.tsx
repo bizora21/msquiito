@@ -2,6 +2,7 @@ import * as React from "react";
 import { useParams, Link } from "react-router-dom";
 import { getServiceById } from "@/lib/sample-data";
 import { Button } from "@/components/ui/button";
+import HomeButton from "@/components/HomeButton";
 
 export default function Servico() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +18,8 @@ export default function Servico() {
 
   if (!service) {
     return (
-      <main className="pt-24 max-w-3xl mx-auto px-4">
+      <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+        <HomeButton />
         <h2 className="text-xl font-semibold">Serviço não encontrado</h2>
         <Link to="/servicos" className="text-blue-600 mt-2 inline-block">Voltar</Link>
       </main>
@@ -25,7 +27,8 @@ export default function Servico() {
   }
 
   return (
-    <main className="pt-24 max-w-3xl mx-auto px-4">
+    <main className="pt-24 max-w-3xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <div className="grid md:grid-cols-2 gap-6">
           <img src={service.image || "/placeholder.svg"} alt={service.name} className="w-full h-64 object-contain rounded" loading="lazy" />

@@ -17,7 +17,7 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent">
       <Header />
       <main className="pt-20">
         <Hero />

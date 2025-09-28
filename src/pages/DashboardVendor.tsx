@@ -2,6 +2,7 @@ import * as React from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import VendorProductManager from "@/components/VendorProductManager";
 import { getVendorProducts } from "@/utils/vendor-products";
+import HomeButton from "@/components/HomeButton";
 
 function Content() {
   const [count, setCount] = React.useState(0);
@@ -14,7 +15,8 @@ function Content() {
   }, []);
 
   return (
-    <main className="pt-24 max-w-6xl mx-auto px-4">
+    <main className="pt-24 max-w-6xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <h1 className="text-2xl font-semibold">Dashboard do Vendedor</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
         <div className="bg-white border rounded-md p-4 animate-in fade-in-50">

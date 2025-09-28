@@ -3,11 +3,13 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { setSession, type UserRole } from "@/utils/auth";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
+import HomeButton from "@/components/HomeButton";
 
 export default function Login() {
   const [role, setRole] = React.useState<UserRole>("client");
   const [phone, setPhone] = React.useState("");
   const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
   const [search] = useSearchParams();
   const navigate = useNavigate();
 
@@ -15,7 +17,7 @@ export default function Login() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSession({ role, phone, name });
+    setSession({ role, phone, name, email });
     showSuccess("Login efetuado!");
     if (redirect) {
       navigate(redirect);
@@ -24,10 +26,12 @@ export default function Login() {
     if (role === "client") navigate("/dashboard/cliente");
     if (role === "vendor") navigate("/dashboard/vendedor");
     if (role === "provider") navigate("/dashboard/prestador");
+    if (role === "admin") navigate("/dashboard/admin");
   };
 
   return (
-    <main className="pt-24 max-w-md mx-auto px-4">
+    <main className="pt-24 max-w-md mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent">
+      <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h1 className="text-xl font-semibold">Entrar</h1>
         <p className="text-sm text-slate-600 mt-1">Use seu telefone ou WhatsApp para entrar.</p>
@@ -42,11 +46,16 @@ export default function Login() {
             <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
           </div>
           <div>
+            <label className="text-sm block mb-1">Email (opcional)</label>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-2 rounded-md" />
+          </div>
+          <div>
             <label className="text-sm block mb-1">Entrar como</label>
             <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full border px-3 py-2 rounded-md">
               <option value="client">Cliente</option>
               <option value="vendor">Vendedor</option>
               <option value="provider">Prestador de Serviço</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
 

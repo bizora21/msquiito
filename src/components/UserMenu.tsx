@@ -38,6 +38,9 @@ export default function UserMenu() {
       {role === "provider" && (
         <Link to="/dashboard/prestador" className="text-sm text-slate-700 hover:text-slate-900">Dashboard Prestador</Link>
       )}
+      {role === "admin" && (
+        <Link to="/dashboard/admin" className="text-sm text-slate-700 hover:text-slate-900">Admin</Link>
+      )}
       <Button
         variant="ghost"
         size="sm"
