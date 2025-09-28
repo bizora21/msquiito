@@ -34,7 +34,7 @@ export default function Login() {
             view="magic_link"
             appearance={{
               theme: ThemeSupa,
-              style: { borderRadius: "8px" },
+              style: { container: { borderRadius: "8px" } },
               variables: { default: { colors: { brand: "#16a34a", brandAccent: "#22c55e" } } },
             }}
             theme="light"
