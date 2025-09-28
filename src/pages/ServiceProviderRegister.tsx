@@ -7,13 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function ServiceProviderRegister() {
-  const [name, setName] = React.useState("");
-  const [service, setService] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [phone, setPhone] = React.useState("");
+  const [name, setName] = React.useState<string>("");
+  const [service, setService] = React.useState<string>("");
+  const [email, setEmail] = React.useState<string>("");
+  const [phone, setPhone] = React.useState<string>("");
+
   const navigate = useNavigate();
 
-  // Pré-preencher com dados do Supabase, se disponível
+  // Pré-preencher com dados do Supabase
   React.useEffect(() => {
     let mounted = true;
     const fetchSbSession = async () => {
@@ -60,7 +61,7 @@ export default function ServiceProviderRegister() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Notificação clara de confirmação de cadastro (email)
+    // Notificação simples de confirmação
     showSuccess("Cadastro de Prestador recebido! Enviamos uma mensagem de confirmação ao seu e-mail.");
     // cria sessão e redireciona ao painel do prestador
     setSession({ role: "provider", name, phone, email });
@@ -81,8 +82,9 @@ export default function ServiceProviderRegister() {
 
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <div>
-            <label className="text-sm block mb-1">Nome da Empresa</label>
+            <label className="text-sm block mb-1" htmlFor="provider-name">Nome da Empresa</label>
             <input
+              id="provider-name"
               aria-label="Nome da Empresa"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -91,8 +93,9 @@ export default function ServiceProviderRegister() {
             />
           </div>
           <div>
-            <label className="text-sm block mb-1">Serviço oferecido</label>
+            <label className="text-sm block mb-1" htmlFor="provider-service">Serviço oferecido</label>
             <input
+              id="provider-service"
               aria-label="Serviço oferecido"
               value={service}
               onChange={(e) => setService(e.target.value)}
@@ -101,8 +104,9 @@ export default function ServiceProviderRegister() {
             />
           </div>
           <div>
-            <label className="text-sm block mb-1">Telefone/WhatsApp</label>
+            <label className="text-sm block mb-1" htmlFor="provider-phone">Telefone/WhatsApp</label>
             <input
+              id="provider-phone"
               aria-label="Telefone/WhatsApp"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -111,8 +115,9 @@ export default function ServiceProviderRegister() {
             />
           </div>
           <div>
-            <label className="text-sm block mb-1">E-mail (para confirmação)</label>
+            <label className="text-sm block mb-1" htmlFor="provider-email">E-mail (para confirmação)</label>
             <input
+              id="provider-email"
               aria-label="Email"
               type="email"
               value={email}
@@ -124,7 +129,7 @@ export default function ServiceProviderRegister() {
 
           <div className="flex items-center gap-3">
             <Button type="submit">Enviar Cadastro</Button>
-            <Button variant="outline" type="button" onClick={() => navigate("/prestador/register")}>Ajuda</Button>
+            <Button variant="outline" type="button" onClick={() => navigate("/servicos")}>Ajuda</Button>
           </div>
         </form>
       </div>
