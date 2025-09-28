@@ -3,8 +3,10 @@ export type UserRole = "client" | "vendor" | "provider" | "admin";
 export type Session = {
   role: UserRole;
   name?: string;
-  phone?: string;
+  phone?: string;      // WhatsApp principal
   email?: string;
+  address?: string;    // Endereço completo
+  altPhone?: string;   // Telefone adicional
 };
 
 const KEY = "lr_session";

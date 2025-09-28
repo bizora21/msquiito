@@ -25,6 +25,18 @@ function newId() {
   return "vp_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
+const CATEGORIES = [
+  "Eletrónica",
+  "Eletrodomésticos",
+  "Transportes",
+  "Casa",
+  "Saúde",
+  "Acessórios",
+  "Moda",
+  "Alimentos",
+  "Outros",
+];
+
 export default function VendorProductManager() {
   const [items, setItems] = React.useState<VendorProduct[]>(() => getVendorProducts());
   const [draft, setDraft] = React.useState<Draft>({
@@ -225,11 +237,17 @@ export default function VendorProductManager() {
               
               <div>
                 <Label htmlFor="product-category">Categoria</Label>
-                <Input 
+                <select
                   id="product-category"
-                  value={draft.category} 
-                  onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))} 
-                />
+                  value={draft.category}
+                  onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                >
+                  <option value="">Selecione...</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
               
               <div className="sm:col-span-2">
@@ -277,7 +295,7 @@ export default function VendorProductManager() {
               </div>
               
               <div className="sm:col-span-2 flex items-center justify-end">
-                <Button type="submit">Salvar produto</Button>
+                <Button type="submit" className="h-10 px-6">Salvar produto</Button>
               </div>
             </form>
           </CardContent>

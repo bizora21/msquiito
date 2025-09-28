@@ -15,10 +15,10 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-500">
+    <article className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-green-500">
       <Link 
         to={`/produto/${product.id}`} 
-        className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+        className="block focus:outline-none focus:ring-2 focus:ring-green-500 rounded-md"
         aria-label={`Ver detalhes do produto ${product.name}`}
       >
         <img
@@ -46,11 +46,11 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex flex-col gap-2">
           <Button 
             onClick={onAdd} 
-            size="sm" 
-            className="flex items-center gap-2"
+            size="lg" 
+            className="flex items-center gap-2 h-10 px-4"
             aria-label={`Adicionar ${product.name} ao carrinho`}
           >
-            <ShoppingCart size={14} aria-hidden="true" />
+            <ShoppingCart size={16} aria-hidden="true" />
             Adicionar
           </Button>
         </div>

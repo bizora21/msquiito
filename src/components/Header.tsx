@@ -24,16 +24,16 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:hidden p-2.5 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Abrir menu de navegação"
             aria-expanded={openMobile}
             onClick={() => setOpenMobile(!openMobile)}
           >
-            <Menu size={20} />
+            <Menu size={22} />
           </button>
           
-          <Link to="/" className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-1">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-md flex items-center justify-center font-bold" aria-hidden="true">
+          <Link to="/" className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-1.5">
+            <div className="w-9 h-9 bg-green-500 text-white rounded-md flex items-center justify-center font-bold" aria-hidden="true">
               LR
             </div>
             <span className="font-semibold text-lg text-slate-800">LojaRápida</span>
@@ -47,10 +47,10 @@ export default function Header() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Pesquisar produtos ou serviços..."
-            className="w-full px-3 py-2 rounded-l-md border border-r-0 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-3 py-2.5 rounded-l-md border border-r-0 border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
             aria-label="Campo de pesquisa"
           />
-          <Button type="submit" className="rounded-r-md" aria-label="Executar pesquisa">
+          <Button type="submit" className="rounded-r-md h-10 px-5" aria-label="Executar pesquisa">
             Pesquisar
           </Button>
         </form>
@@ -58,7 +58,7 @@ export default function Header() {
         <nav className="flex items-center gap-3" role="navigation" aria-label="Menu principal">
           <Link 
             to="/" 
-            className="hidden sm:inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2.5 py-1.5"
             aria-label="Ir para página inicial"
           >
             <Home size={16} />
@@ -66,19 +66,19 @@ export default function Header() {
           </Link>
           <Link 
             to="/produtos" 
-            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2.5 py-1.5"
           >
             Produtos
           </Link>
           <Link 
             to="/servicos" 
-            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2.5 py-1.5"
           >
             Serviços
           </Link>
           <Link 
             to="/blog" 
-            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+            className="hidden sm:inline text-sm text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2.5 py-1.5"
           >
             Blog
           </Link>
@@ -88,9 +88,9 @@ export default function Header() {
           <button
             onClick={() => setOpenCart(true)}
             aria-label={`Abrir carrinho de compras${count > 0 ? ` (${count} ${count === 1 ? 'item' : 'itens'})` : ' (vazio)'}`}
-            className={cn("relative p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500")}
+            className={cn("relative p-2.5 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500")}
           >
-            <ShoppingCart size={20} />
+            <ShoppingCart size={22} />
             {count > 0 && (
               <span 
                 className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full text-xs px-2 min-w-[20px] h-5 flex items-center justify-center"
@@ -102,7 +102,7 @@ export default function Header() {
           </button>
 
           <Link to="/checkout">
-            <Button className="hidden md:inline-flex bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+            <Button className="hidden md:inline-flex bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 h-10 px-5">
               Compre Agora
             </Button>
           </Link>
@@ -118,19 +118,19 @@ export default function Header() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Pesquisar..."
-              className="w-full px-3 py-2 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-3 py-2.5 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </form>
           <div className="flex flex-col gap-2">
-            <Link to="/" className="py-2 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">
-              <Home size={16} />
+            <Link to="/" className="py-2.5 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">
+              <Home size={18} />
               Início
             </Link>
-            <Link to="/produtos" className="py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">Produtos</Link>
-            <Link to="/servicos" className="py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">Serviços</Link>
-            <Link to="/blog" className="py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">Blog</Link>
-            <Link to="/cliente/register" className="py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">Criar conta</Link>
-            <Link to="/login" className="py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2">Entrar</Link>
+            <Link to="/produtos" className="py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">Produtos</Link>
+            <Link to="/servicos" className="py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">Serviços</Link>
+            <Link to="/blog" className="py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">Blog</Link>
+            <Link to="/cliente/register" className="py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">Criar conta</Link>
+            <Link to="/login" className="py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2">Entrar</Link>
           </div>
         </div>
       )}

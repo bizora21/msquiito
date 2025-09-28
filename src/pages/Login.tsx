@@ -23,7 +23,7 @@ export default function Login() {
       navigate(redirect);
       return;
     }
-    if (role === "client") navigate("/dashboard/cliente");
+    if (role === "client") navigate("/produtos");
     if (role === "vendor") navigate("/dashboard/vendedor");
     if (role === "provider") navigate("/dashboard/prestador");
     if (role === "admin") navigate("/dashboard/admin");
@@ -39,19 +39,19 @@ export default function Login() {
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <div>
             <label className="text-sm block mb-1">Nome</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-3 rounded-md" required />
           </div>
           <div>
             <label className="text-sm block mb-1">Telefone/WhatsApp</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-3 rounded-md" required />
           </div>
           <div>
             <label className="text-sm block mb-1">Email (opcional)</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-2 rounded-md" />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-3 rounded-md" />
           </div>
           <div>
             <label className="text-sm block mb-1">Entrar como</label>
-            <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full border px-3 py-2 rounded-md">
+            <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full border px-3 py-3 rounded-md">
               <option value="client">Cliente</option>
               <option value="vendor">Vendedor</option>
               <option value="provider">Prestador de Serviço</option>
@@ -59,7 +59,7 @@ export default function Login() {
             </select>
           </div>
 
-          <Button type="submit" className="w-full">Entrar</Button>
+        <Button type="submit" className="w-full h-11 text-base">Entrar</Button>
         </form>
 
         <div className="text-xs text-slate-500 mt-4">

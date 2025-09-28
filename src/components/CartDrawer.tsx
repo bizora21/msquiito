@@ -3,10 +3,21 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { isLoggedIn } from "@/utils/auth";
 
 export default function CartDrawer({ open, onOpenChange }: { open?: boolean; onOpenChange?: (o: boolean) => void }) {
   const { enriched, updateQty, remove, total } = useCart();
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    if (!isLoggedIn()) {
+      navigate("/cliente/register");
+    } else {
+      navigate("/checkout");
+    }
+    onOpenChange?.(false);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -49,9 +60,9 @@ export default function CartDrawer({ open, onOpenChange }: { open?: boolean; onO
             <div className="text-sm text-slate-600">Total</div>
             <div className="text-lg font-semibold">MT {total}</div>
           </div>
-          <Link to="/checkout">
-            <Button className="w-full mt-4">Finalizar Compra</Button>
-          </Link>
+          <Button className="w-full mt-4 h-11 text-base" onClick={handleCheckout}>
+            Finalizar Compra
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import HomeButton from "@/components/HomeButton";
 import { isLoggedIn, getSession } from "@/utils/auth";
 import { createOrder } from "@/utils/orders";
+import { sendOrderNotifications } from "@/utils/notifications";
 
 export default function Checkout() {
   const { enriched, total, clear } = useCart();
@@ -21,7 +22,8 @@ export default function Checkout() {
     document.title = "Checkout — LojaRápida";
     if (session?.name) setName((v) => v || session.name || "");
     if (session?.phone) setPhone((v) => v || session.phone || "");
-  }, [session?.name, session?.phone]);
+    if (session?.address) setAddress((v) => v || session.address || "");
+  }, [session?.name, session?.phone, session?.address]);
 
   if (enriched.length === 0) {
     return (
@@ -45,7 +47,7 @@ export default function Checkout() {
       price: product.price,
       subtotal,
     }));
-    createOrder({
+    const order = createOrder({
       items,
       total,
       customerName: name || session?.name,
@@ -53,9 +55,18 @@ export default function Checkout() {
       address,
       feePct: 0.09,
     });
-    showSuccess("Pedido confirmado! Você receberá atualizações por WhatsApp/SMS.");
+    showSuccess("Pedido confirmado! Você receberá atualizações por WhatsApp/Email.");
+    if (session?.phone) {
+      sendOrderNotifications({
+        name: name || session?.name || "Cliente",
+        email: session?.email,
+        whatsapp: session?.phone,
+        orderId: order.id,
+        total,
+      });
+    }
     clear();
-    navigate("/"); // redireciona à página inicial após confirmar
+    navigate("/dashboard/cliente"); // direciona ao painel do cliente após confirmar
   };
 
   return (
@@ -107,7 +118,7 @@ export default function Checkout() {
               <div className="text-sm text-slate-700">
                 <div><strong>Nome:</strong> {name || session?.name || "—"}</div>
                 <div><strong>Telefone:</strong> {phone || session?.phone || "—"}</div>
-                <div><strong>Endereço:</strong> {address || "—"}</div>
+                <div><strong>Endereço:</strong> {address || session?.address || "—"}</div>
                 <div className="mt-3">Pagamento: na entrega (Cash on Delivery)</div>
               </div>
               <Button className="w-full mt-4" onClick={confirm} disabled={!logged}>
