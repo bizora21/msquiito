@@ -1,48 +1,64 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
 import HomeButton from "@/components/HomeButton";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useSearchParams } from "react-router-dom";
-import { showSuccess, showError } from "@/utils/toast";
 
 export default function Login() {
   const [search] = useSearchParams();
-  const [forgot, setForgot] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
+  const navigate = useNavigate();
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [forgot, setForgot] = React.useState(false);
+  const [resetEmail, setResetEmail] = React.useState("");
 
-  useEffect(() => {
+  React.useEffect(() => {
     document.title = "Entrar — LojaRápida";
   }, []);
 
-  // Redirect hint (para acessibilidade)
   const redirectHint = search.get("redirect")
     ? `Após entrar, você será redirecionado para: ${search.get("redirect")}`
     : null;
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      showError("Informe e-mail e senha.");
+      return;
+    }
+    setSubmitting(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    setSubmitting(false);
+    if (error) {
+      showError("Credenciais inválidas ou conta não confirmada.");
+      return;
+    }
+    showSuccess("Login realizado com sucesso.");
+    // Após login, o AuthProvider sincroniza sessão local e redireciona se você estiver em /login.
+    // Caso haja um redirect na URL, vamos para lá.
+    const redirect = search.get("redirect");
+    if (redirect) {
+      navigate(redirect, { replace: true });
+    } else {
+      // Direciona para a loja por padrão; o AuthProvider poderá redirecionar por role
+      navigate("/produtos", { replace: true });
+    }
+  };
 
   const handlePasswordReset = async () => {
     if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) {
       showError("Informe um e-mail válido para recuperação.");
       return;
     }
-    try {
-      // redirectTo opcional
-      const redirectTo = typeof window !== "undefined" ? window.location.origin + "/login" : undefined;
-      // Corrigido: usar a API correta no Supabase v2
-      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo,
-      });
-      // Em geral, a chamada retorna um objeto; erros são tratados pela API
-      if (error) {
-        showError("Falha ao solicitar recuperação. Tente novamente.");
-      } else {
-        showSuccess("Link de recuperação enviado por e-mail.");
-        setForgot(false);
-        setResetEmail("");
-      }
-    } catch {
-      showError("Erro ao solicitar recuperação de senha.");
+    const redirectTo = typeof window !== "undefined" ? window.location.origin + "/login" : undefined;
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, { redirectTo });
+    if (error) {
+      showError("Falha ao solicitar recuperação. Tente novamente.");
+    } else {
+      showSuccess("Link de recuperação enviado por e-mail.");
+      setForgot(false);
+      setResetEmail("");
     }
   };
 
@@ -51,9 +67,7 @@ export default function Login() {
       <HomeButton />
       <div className="bg-white border rounded-md p-6" role="main" aria-label="Área de login">
         <h1 className="text-xl font-semibold">Entrar</h1>
-        <p className="text-sm text-slate-600 mt-1">
-          Acesse com seu e-mail. Enviaremos um link seguro de login (confirmação por e-mail).
-        </p>
+        <p className="text-sm text-slate-600 mt-1">Acesse sua conta com e-mail e senha.</p>
 
         {redirectHint && (
           <div role="status" aria-live="polite" className="mt-3 text-sm text-slate-600">
@@ -63,24 +77,37 @@ export default function Login() {
 
         {!forgot ? (
           <>
-            <div className="mt-4" aria-label="Componente de autenticação">
-              <Auth
-                supabaseClient={supabase}
-                providers={[]}
-                localization={{
-                  variables: {
-                    sign_in: { email_label: "Seu e-mail", email_input_placeholder: "voce@email.com" },
-                  },
-                }}
-                view="magic_link"
-                appearance={{
-                  theme: ThemeSupa,
-                  style: { container: { borderRadius: "8px" } },
-                  variables: { default: { colors: { brand: "#16a34a", brandAccent: "#22c55e" } } },
-                }}
-                theme="light"
-              />
-            </div>
+            <form onSubmit={handleLogin} className="mt-4 space-y-3">
+              <div>
+                <label htmlFor="login-email" className="block text-sm mb-1">E-mail</label>
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border px-3 py-2 rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="login-password" className="block text-sm mb-1">Senha</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border px-3 py-2 rounded-md"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-2"
+              >
+                {submitting ? "Entrando..." : "Entrar"}
+              </button>
+            </form>
 
             <div className="text-xs text-slate-500 mt-4 space-y-1" aria-label="Links de cadastro">
               <div>É novo por aqui? <Link to="/cliente/register" className="text-blue-600">Criar conta de Cliente</Link></div>
@@ -95,7 +122,7 @@ export default function Login() {
         ) : (
           <>
             <div className="mt-4" aria-label="Recuperação de senha">
-              <label htmlFor="reset-email" className="block text-sm mb-1">Informe seu e-mail para recuperar senha</label>
+              <label htmlFor="reset-email" className="block text-sm mb-1">E-mail para recuperar senha</label>
               <input
                 id="reset-email"
                 aria-label="Email para recuperação de senha"

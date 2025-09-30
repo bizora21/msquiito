@@ -10,89 +10,60 @@ export default function ServiceProviderRegister() {
   const [companyName, setCompanyName] = React.useState<string>("");
   const [service, setService] = React.useState<string>("");
   const [email, setEmail] = React.useState<string>("");
+  const [password, setPassword] = React.useState<string>("");
+  const [confirm, setConfirm] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
 
-  const [hasSbSession, setHasSbSession] = React.useState(false);
-  const [sendingLink, setSendingLink] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
     document.title = "Cadastro de Prestador — LojaRápida";
   }, []);
 
-  // Pré-preencher com dados do Supabase
-  React.useEffect(() => {
-    let mounted = true;
-    const sync = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sb = data?.session;
-      setHasSbSession(!!sb);
-      if (sb && mounted) {
-        const user = sb.user;
-        const defaultEmail = user?.email ?? "";
-        if (!email) setEmail(defaultEmail);
-      }
-    };
-    sync();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
-      const { data } = await supabase.auth.getSession();
-      const sb = data?.session;
-      setHasSbSession(!!sb);
-    });
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []); // eslint-disable-line
-
-  const sendMagicLink = async () => {
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showError("Informe um e-mail válido.");
-      return;
-    }
-    setSendingLink(true);
-    try {
-      const redirectTo = `${window.location.origin}/prestador/register`;
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo },
-      });
-      if (error) showError("Não foi possível enviar o link. Tente novamente.");
-      else showSuccess("Enviamos um link de confirmação para seu e-mail.");
-    } finally {
-      setSendingLink(false);
-    }
+  const validate = () => {
+    if (!companyName.trim()) return "Informe o nome da empresa.";
+    if (!service.trim()) return "Informe o serviço oferecido.";
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Informe um e-mail válido.";
+    if (!password || password.length < 6) return "Senha deve ter pelo menos 6 caracteres.";
+    if (password !== confirm) return "As senhas não coincidem.";
+    if (!phone.trim()) return "Informe o telefone/WhatsApp.";
+    return null;
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyName.trim()) {
-      showError("Informe o nome da empresa.");
-      return;
-    }
-    if (!service.trim()) {
-      showError("Informe o serviço oferecido.");
-      return;
-    }
-    if (!phone.trim()) {
-      showError("Informe o telefone/WhatsApp.");
+    const err = validate();
+    if (err) {
+      showError(err);
       return;
     }
 
-    const { data: sb } = await supabase.auth.getSession();
-    if (!sb.session) {
-      showError("Confirme o link de e-mail para continuar.");
+    setSubmitting(true);
+    const { data: signData, error: signErr } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: companyName } },
+    });
+    setSubmitting(false);
+
+    if (signErr) {
+      showError("Não foi possível criar sua conta.");
       return;
     }
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
+
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess.session) {
+      showSuccess("Conta criada! Verifique seu e-mail para confirmar e depois faça login para concluir o cadastro.");
+      return;
+    }
+
+    const uid = signData.user?.id;
+    if (!uid) {
       showError("Sessão inválida.");
       return;
     }
-    const uid = userData.user.id;
 
-    // Upsert profile como PRESTADOR
     const profilePayload = {
       user_id: uid,
       full_name: companyName,
@@ -111,7 +82,6 @@ export default function ServiceProviderRegister() {
       return;
     }
 
-    // Cria sessão local coerente
     setSession({ role: "provider", name: companyName, phone, email });
     showSuccess("Cadastro de prestador concluído!");
     navigate("/dashboard/prestador");
@@ -122,71 +92,41 @@ export default function ServiceProviderRegister() {
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Cadastro de Prestador de Serviços</h2>
-        <p className="text-sm text-slate-600 mt-2">Ofereça entregas, instalações ou suporte na sua área.</p>
-
-        {!hasSbSession && (
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3">
-            <div className="text-sm text-slate-700">Primeiro, crie sua conta com e-mail (enviamos um link de confirmação).</div>
-            <div className="mt-2 flex gap-2">
-              <input
-                placeholder="voce@empresa.com"
-                className="flex-1 border px-3 py-2 rounded-md"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Button onClick={sendMagicLink} disabled={sendingLink}>
-                {sendingLink ? "Enviando..." : "Criar conta"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <p className="text-sm text-slate-600 mt-2">Crie sua conta com e-mail e senha.</p>
 
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <div>
             <label className="text-sm block mb-1" htmlFor="provider-name">Nome da Empresa *</label>
-            <input
-              id="provider-name"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md"
-              required
-            />
+            <input id="provider-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
           </div>
           <div>
             <label className="text-sm block mb-1" htmlFor="provider-service">Serviço oferecido *</label>
-            <input
-              id="provider-service"
-              value={service}
-              onChange={(e) => setService(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md"
-              required
-            />
+            <input id="provider-service" value={service} onChange={(e) => setService(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
           </div>
+
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-sm block mb-1" htmlFor="provider-phone">Telefone/WhatsApp *</label>
-              <input
-                id="provider-phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border px-3 py-2 rounded-md"
-                required
-              />
+              <label className="text-sm block mb-1" htmlFor="provider-email">E-mail *</label>
+              <input id="provider-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
             </div>
             <div>
-              <label className="text-sm block mb-1" htmlFor="provider-email">E-mail *</label>
-              <input
-                id="provider-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border px-3 py-2 rounded-md"
-                required
-              />
+              <label className="text-sm block mb-1" htmlFor="provider-phone">Telefone/WhatsApp *</label>
+              <input id="provider-phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
             </div>
           </div>
 
-          <Button type="submit" disabled={!hasSbSession}>Concluir cadastro</Button>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm block mb-1" htmlFor="provider-password">Senha *</label>
+              <input id="provider-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            </div>
+            <div>
+              <label className="text-sm block mb-1" htmlFor="provider-confirm">Confirmar senha *</label>
+              <input id="provider-confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className="w-full border px-3 py-2 rounded-md" required />
+            </div>
+          </div>
+
+          <Button type="submit" disabled={submitting}>{submitting ? "Salvando..." : "Concluir cadastro"}</Button>
         </form>
       </div>
     </main>

@@ -1,13 +1,13 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { getAnyProductById } from "@/lib/catalog";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
 import HomeButton from "@/components/HomeButton";
+import { useProductById } from "@/hooks/use-product-by-id";
 
 export default function Produto() {
   const { id } = useParams<{ id: string }>();
-  const product = getAnyProductById(id);
+  const { product, isLoading } = useProductById(id);
 
   React.useEffect(() => {
     if (product) {
@@ -16,6 +16,20 @@ export default function Produto() {
       if (meta) meta.setAttribute("content", product.description || "");
     }
   }, [product]);
+
+  if (isLoading) {
+    return (
+      <main className="pt-24 min-h-screen bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
+        <div className="max-w-4xl mx-auto px-4">
+          <HomeButton />
+          <div className="bg-white border rounded-md p-6">
+            <div className="h-80 bg-gray-100 rounded-md animate-pulse" />
+            <div className="mt-4 h-6 bg-gray-100 rounded w-1/2 animate-pulse" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (!product) {
     return (

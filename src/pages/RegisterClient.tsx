@@ -10,113 +10,65 @@ import { supabase } from "@/integrations/supabase/client";
 export default function RegisterClient() {
   const [name, setName] = React.useState<string>("");
   const [email, setEmail] = React.useState<string>("");
+  const [password, setPassword] = React.useState<string>("");
+  const [confirm, setConfirm] = React.useState<string>("");
   const [whatsapp, setWhatsapp] = React.useState<string>("");
   const [address, setAddress] = React.useState<string>("");
   const [altPhone, setAltPhone] = React.useState<string>("");
 
   const [errors, setErrors] = React.useState<Partial<Record<string, string>>>({});
-  const [hasSbSession, setHasSbSession] = React.useState(false);
-  const [sendingLink, setSendingLink] = React.useState(false);
-
+  const [submitting, setSubmitting] = React.useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
     document.title = "Criar conta de Cliente — LojaRápida";
   }, []);
 
-  // Pré-preencher com dados do Supabase, se disponível
-  React.useEffect(() => {
-    let mounted = true;
-    const fetchSbSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sb = data?.session;
-      setHasSbSession(!!sb);
-      if (sb && mounted) {
-        const user = sb.user;
-        const defaultName =
-          (user?.user_metadata as any)?.full_name ||
-          (user?.user_metadata as any)?.name ||
-          (user?.email?.split("@")[0] ?? "");
-        const defaultEmail = user?.email ?? "";
-        if (!name) setName(defaultName);
-        if (!email) setEmail(defaultEmail);
-      }
-    };
-    fetchSbSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
-      const { data } = await supabase.auth.getSession();
-      const sb = data?.session;
-      setHasSbSession(!!sb);
-      if (sb) {
-        const user = sb.user;
-        const nm =
-          (user?.user_metadata as any)?.full_name ||
-          (user?.user_metadata as any)?.name ||
-          (user?.email?.split("@")[0] ?? "");
-        const em = user?.email ?? "";
-        if (!name) setName(nm);
-        if (!email) setEmail(em);
-      }
-    });
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []); // eslint-disable-line
-
   const validate = (): boolean => {
     const nextErrors: Partial<Record<string, string>> = {};
     if (!name?.trim()) nextErrors.name = "Nome é obrigatório";
     if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Email inválido";
+    if (!password || password.length < 6) nextErrors.password = "Senha deve ter pelo menos 6 caracteres";
+    if (confirm !== password) nextErrors.confirm = "As senhas não coincidem";
     if (!whatsapp?.trim()) nextErrors.whatsapp = "WhatsApp é obrigatório";
     if (!address?.trim()) nextErrors.address = "Endereço é obrigatório";
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
-  };
-
-  const sendMagicLink = async () => {
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showError("Informe um e-mail válido.");
-      return;
-    }
-    setSendingLink(true);
-    try {
-      const redirectTo = `${window.location.origin}/cliente/register`;
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo },
-      });
-      if (error) {
-        showError("Não foi possível enviar o link. Tente novamente.");
-      } else {
-        showSuccess("Enviamos um link de confirmação para seu e-mail.");
-      }
-    } finally {
-      setSendingLink(false);
-    }
-  };
+    };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    // Garante sessão Supabase antes de gravar perfil
-    const { data: authData } = await supabase.auth.getSession();
-    if (!authData.session) {
-      showError("Confirme o link enviado ao seu e-mail para continuar.");
+    setSubmitting(true);
+    const { data: signData, error: signErr } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    });
+    setSubmitting(false);
+
+    if (signErr) {
+      showError("Não foi possível criar sua conta. Verifique o e-mail.");
       return;
     }
 
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
+    // Tenta obter sessão; se ainda não confirmada, pede para confirmar e-mail
+    const { data: authData } = await supabase.auth.getSession();
+    if (!authData.session) {
+      showSuccess("Cadastro criado! Verifique seu e-mail para confirmar a conta e então faça login.");
+      return;
+    }
+
+    // Já autenticado → grava/atualiza perfil
+    const userId = signData.user?.id;
+    if (!userId) {
       showError("Sessão inválida. Tente entrar novamente.");
       return;
     }
 
-    // Salva/atualiza perfil no Supabase
     const payload = {
-      user_id: userData.user.id,
+      user_id: userId,
       full_name: name,
       email,
       phone: whatsapp,
@@ -128,16 +80,14 @@ export default function RegisterClient() {
 
     const { error: upsertErr } = await supabase.from("profiles").upsert(payload, { onConflict: "user_id" });
     if (upsertErr) {
-      showError("Não foi possível salvar seu cadastro.");
+      showError("Não foi possível salvar seu perfil.");
       return;
     }
 
-    // Cria sessão local coerente com o perfil (fonte: Supabase)
     setSession({ role: "client", name, email, phone: whatsapp, address, altPhone });
-    showSuccess("Cadastro de cliente criado!");
+    showSuccess("Cadastro concluído com sucesso!");
     sendSignupNotifications({ name, email, whatsapp, address, altPhone });
 
-    // Redireciona
     const appSess = getAppSession();
     if (appSess?.role === "client") {
       navigate("/produtos");
@@ -151,90 +101,53 @@ export default function RegisterClient() {
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Criar conta de Cliente</h2>
-        <p className="text-sm text-slate-600 mt-1">Finalize suas compras mais rápido e acompanhe seus pedidos.</p>
-
-        {!hasSbSession && (
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3">
-            <div className="text-sm text-slate-700">
-              Primeiro, crie sua conta com seu e-mail. Enviaremos um link de confirmação.
-            </div>
-            <div className="mt-2 flex gap-2">
-              <input
-                placeholder="seu@email.com"
-                className="flex-1 border px-3 py-2 rounded-md"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Button onClick={sendMagicLink} disabled={sendingLink}>
-                {sendingLink ? "Enviando..." : "Criar conta"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <p className="text-sm text-slate-600 mt-1">Crie sua conta com e-mail e senha.</p>
 
         <form onSubmit={onSubmit} className="mt-4 space-y-3" noValidate>
           <div>
             <label className="text-sm block mb-1" htmlFor="client-name">Nome completo *</label>
-            <input
-              id="client-name"
-              className="w-full border px-3 py-3 rounded-md"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              aria-invalid={!!errors.name}
-            />
+            <input id="client-name" className="w-full border px-3 py-3 rounded-md" value={name} onChange={(e) => setName(e.target.value)} required aria-invalid={!!errors.name} />
             {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
           </div>
+
           <div>
             <label className="text-sm block mb-1" htmlFor="client-email">Email *</label>
-            <input
-              id="client-email"
-              type="email"
-              className="w-full border px-3 py-3 rounded-md"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              aria-invalid={!!errors.email}
-            />
+            <input id="client-email" type="email" className="w-full border px-3 py-3 rounded-md" value={email} onChange={(e) => setEmail(e.target.value)} required aria-invalid={!!errors.email} />
             {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
           </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm block mb-1" htmlFor="client-password">Senha *</label>
+              <input id="client-password" type="password" className="w-full border px-3 py-3 rounded-md" value={password} onChange={(e) => setPassword(e.target.value)} required aria-invalid={!!errors.password} />
+              {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
+            </div>
+            <div>
+              <label className="text-sm block mb-1" htmlFor="client-confirm">Confirmar senha *</label>
+              <input id="client-confirm" type="password" className="w-full border px-3 py-3 rounded-md" value={confirm} onChange={(e) => setConfirm(e.target.value)} required aria-invalid={!!errors.confirm} />
+              {errors.confirm && <p className="text-xs text-red-600 mt-1">{errors.confirm}</p>}
+            </div>
+          </div>
+
           <div>
             <label className="text-sm block mb-1" htmlFor="client-whatsapp">Número do WhatsApp *</label>
-            <input
-              id="client-whatsapp"
-              inputMode="tel"
-              className="w-full border px-3 py-3 rounded-md"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              required
-              aria-invalid={!!errors.whatsapp}
-            />
+            <input id="client-whatsapp" inputMode="tel" className="w-full border px-3 py-3 rounded-md" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required aria-invalid={!!errors.whatsapp} />
             {errors.whatsapp && <p className="text-xs text-red-600 mt-1">{errors.whatsapp}</p>}
           </div>
+
           <div>
             <label className="text-sm block mb-1" htmlFor="client-address">Endereço completo *</label>
-            <input
-              id="client-address"
-              className="w-full border px-3 py-3 rounded-md"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              required
-              aria-invalid={!!errors.address}
-            />
+            <input id="client-address" className="w-full border px-3 py-3 rounded-md" value={address} onChange={(e) => setAddress(e.target.value)} required aria-invalid={!!errors.address} />
             {errors.address && <p className="text-xs text-red-600 mt-1">{errors.address}</p>}
           </div>
+
           <div>
             <label className="text-sm block mb-1" htmlFor="client-altphone">Telefone adicional</label>
-            <input
-              id="client-altphone"
-              inputMode="tel"
-              className="w-full border px-3 py-3 rounded-md"
-              value={altPhone}
-              onChange={(e) => setAltPhone(e.target.value)}
-            />
+            <input id="client-altphone" inputMode="tel" className="w-full border px-3 py-3 rounded-md" value={altPhone} onChange={(e) => setAltPhone(e.target.value)} />
           </div>
-          <Button type="submit" className="w-full h-11 text-base" disabled={!hasSbSession}>
-            {hasSbSession ? "Salvar cadastro" : "Crie sua conta para continuar"}
+
+          <Button type="submit" className="w-full h-11 text-base" disabled={submitting}>
+            {submitting ? "Criando conta..." : "Criar conta"}
           </Button>
         </form>
       </div>
