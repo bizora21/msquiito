@@ -11,16 +11,27 @@ type ProfileRow = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
-  role?: string | null;       // pode vir 'cliente', 'lojista', 'vendor', etc
-  user_type?: string | null;  // fallback
+  role?: string | null;
+  user_type?: string | null;
 };
 
 function mapRole(profile?: ProfileRow): "client" | "vendor" | "provider" | "admin" | null {
   const raw = (profile?.role || profile?.user_type || "").toLowerCase();
-  if (["client", "cliente"].includes(raw)) return "client";
-  if (["vendor", "lojista", "vendedor"].includes(raw)) return "vendor";
-  if (["provider", "prestador"].includes(raw)) return "provider";
-  if (raw === "admin") return "admin";
+  
+  // Mapeamento mais detalhado e explícito
+  const roleMap = {
+    'client': ['cliente', 'client'],
+    'vendor': ['vendor', 'lojista', 'vendedor'],
+    'provider': ['provider', 'prestador'],
+    'admin': ['admin']
+  };
+
+  for (const [role, matches] of Object.entries(roleMap)) {
+    if (matches.some(match => raw.includes(match))) {
+      return role as "client" | "vendor" | "provider" | "admin";
+    }
+  }
+
   return null;
 }
 
@@ -32,13 +43,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const { data } = await supabase.auth.getSession();
     const sbSession = data.session;
 
-    // Sem sessão no Supabase: limpa sessão local e, se estiver em rota protegida, será tratado na ProtectedRoute.
     if (!sbSession) {
       clearSession();
       return;
     }
 
-    // Existe sessão no Supabase: tentamos obter o perfil.
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) {
@@ -52,24 +61,18 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       .eq("user_id", uid)
       .maybeSingle<ProfileRow>();
 
-    if (profErr) {
-      // Sem perfil por erro – não cria sessão local.
-      return;
-    }
-
-    if (!prof) {
-      // Sem perfil: se estiver em login ou home, leva para completar cadastro.
-      if (location.pathname !== "/cliente/register") {
-        navigate("/cliente/register", { replace: true });
+    if (profErr || !prof) {
+      // Sem perfil: redireciona para completar cadastro
+      if (!['/cliente/register', '/vendedor/register', '/prestador/register'].includes(location.pathname)) {
+        navigate("/cliente/register");
       }
       return;
     }
 
-    // Temos perfil → mapeia role e cria sessão local do app
     const role = mapRole(prof) ?? "client";
     const appSession = getAppSession();
 
-    // Atualiza sessão local caso não exista ou mudou role/dados principais
+    // Atualiza sessão local
     if (
       !appSession ||
       appSession.role !== role ||
@@ -87,12 +90,21 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       });
     }
 
-    // Se o usuário está na página de login, redireciona de acordo com o role
+    // Redireciona após login de acordo com o papel
     if (location.pathname === "/login") {
-      if (role === "vendor") navigate("/dashboard/vendedor", { replace: true });
-      else if (role === "provider") navigate("/dashboard/prestador", { replace: true });
-      else if (role === "admin") navigate("/dashboard/admin", { replace: true });
-      else navigate("/produtos", { replace: true });
+      switch(role) {
+        case "vendor":
+          navigate("/dashboard/vendedor");
+          break;
+        case "provider":
+          navigate("/dashboard/prestador");
+          break;
+        case "admin":
+          navigate("/dashboard/admin");
+          break;
+        default:
+          navigate("/produtos");
+      }
     }
   }, [location.pathname, navigate]);
 
