@@ -9,10 +9,10 @@ export default function Hero() {
       <div className="max-w-6xl mx-auto px-4 pt-24 pb-12 grid md:grid-cols-2 gap-8 items-center">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Conecte seu negócio com clientes em todo o Brasil
+            Conecte seu negócio com clientes em todo Moçambique
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Plataforma completa para vendedores e prestadores de serviço expandirem seus negócios
+            Plataforma completa para vendedores e prestadores de serviço expandirem seus negócios locais
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/produtos" className="w-full sm:w-auto">
