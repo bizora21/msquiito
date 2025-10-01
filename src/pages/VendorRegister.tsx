@@ -6,6 +6,25 @@ import { setSession } from "@/utils/auth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Categorias pré-definidas para lojas
+const STORE_CATEGORIES = [
+  "Alimentação",
+  "Moda e Vestuário",
+  "Eletrônicos",
+  "Móveis e Decoração",
+  "Beleza e Cosméticos",
+  "Artesanato",
+  "Serviços",
+  "Tecnologia",
+  "Papelaria",
+  "Automotivo",
+  "Saúde e Bem-estar",
+  "Esportes",
+  "Brinquedos",
+  "Livraria",
+  "Outro"
+];
+
 export default function VendorRegister() {
   const [storeName, setStoreName] = React.useState<string>("");
   const [category, setCategory] = React.useState<string>("");
@@ -30,6 +49,7 @@ export default function VendorRegister() {
     if (password !== confirm) return "As senhas não coincidem.";
     if (!phone.trim()) return "Informe seu WhatsApp/telefone.";
     if (!address.trim()) return "Informe o endereço da loja.";
+    if (!category) return "Selecione uma categoria para sua loja.";
     return null;
   };
 
@@ -75,7 +95,7 @@ export default function VendorRegister() {
       role: "lojista",
       user_type: "vendor",
       store_name: storeName,
-      store_category: category || null,
+      store_category: category,
       store_description: description || null,
       updated_at: new Date().toISOString(),
     };
@@ -98,7 +118,7 @@ export default function VendorRegister() {
         user_id: uid,
         nome: storeName,
         descricao: description || null,
-        categoria: category || null,
+        categoria: category,
         endereco: address || null,
         horario_funcionamento: null,
         taxa_entrega: 0,
@@ -151,8 +171,19 @@ export default function VendorRegister() {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-sm block mb-1" htmlFor="store-category">Categoria</label>
-              <input id="store-category" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border px-3 py-2 rounded-md" />
+              <label className="text-sm block mb-1" htmlFor="store-category">Categoria da Loja *</label>
+              <select 
+                id="store-category" 
+                value={category} 
+                onChange={(e) => setCategory(e.target.value)} 
+                className="w-full border px-3 py-2 rounded-md"
+                required
+              >
+                <option value="">Selecione uma categoria</option>
+                {STORE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="text-sm block mb-1" htmlFor="store-address">Endereço *</label>
