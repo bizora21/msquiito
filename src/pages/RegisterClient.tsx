@@ -19,6 +19,25 @@ export default function RegisterClient() {
     document.title = "Criar Conta de Cliente — LojaRápida";
   }, []);
 
+  // Função para formatar número de WhatsApp
+  const formatWhatsAppNumber = (input: string) => {
+    // Remove todos os caracteres não numéricos
+    const cleanedNumber = input.replace(/\D/g, '');
+    
+    // Se já começar com 258, mantém
+    if (cleanedNumber.startsWith('258')) {
+      return `+${cleanedNumber}`;
+    }
+    
+    // Se começar com 8 ou 9, adiciona 258
+    if (cleanedNumber.startsWith('8') || cleanedNumber.startsWith('9')) {
+      return `+258${cleanedNumber}`;
+    }
+    
+    // Caso contrário, adiciona 258 e completa
+    return `+258${cleanedNumber}`;
+  };
+
   const validate = () => {
     const errors: string[] = [];
 
@@ -29,8 +48,11 @@ export default function RegisterClient() {
       errors.push("Senha deve ter pelo menos 6 caracteres");
     if (password !== confirm) 
       errors.push("As senhas não coincidem");
-    if (!whatsapp.trim()) 
-      errors.push("Número de WhatsApp é obrigatório");
+    
+    // Validação específica para número de WhatsApp de Moçambique
+    const cleanedNumber = whatsapp.replace(/\D/g, '');
+    if (!cleanedNumber || cleanedNumber.length < 9) 
+      errors.push("Número de WhatsApp inválido");
 
     return errors;
   };
@@ -44,6 +66,9 @@ export default function RegisterClient() {
       return;
     }
 
+    // Formata o número de WhatsApp
+    const formattedWhatsapp = formatWhatsAppNumber(whatsapp);
+
     setLoading(true);
 
     try {
@@ -54,7 +79,7 @@ export default function RegisterClient() {
         options: {
           data: {
             full_name: name,
-            whatsapp,
+            whatsapp: formattedWhatsapp,
             role: 'client',
             user_type: 'client'
           }
@@ -84,7 +109,7 @@ export default function RegisterClient() {
           user_id: user.id,
           full_name: name,
           email,
-          phone: whatsapp,
+          phone: formattedWhatsapp,
           role: 'client',
           user_type: 'client',
           updated_at: new Date().toISOString()
@@ -103,7 +128,7 @@ export default function RegisterClient() {
         role: 'client',
         name,
         email,
-        phone: whatsapp
+        phone: formattedWhatsapp
       });
 
       showSuccess("Conta criada com sucesso!");
@@ -150,15 +175,20 @@ export default function RegisterClient() {
 
           <div>
             <label className="text-sm block mb-1" htmlFor="whatsapp">WhatsApp *</label>
-            <input 
-              id="whatsapp"
-              type="tel"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md"
-              placeholder="Número com DDD"
-              required
-            />
+            <div className="flex items-center">
+              <span className="border px-3 py-2 rounded-l-md bg-gray-100 text-gray-600">+258</span>
+              <input 
+                id="whatsapp"
+                type="tel"
+                value={whatsapp.replace(/^(\+258)?/, '')}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                className="w-full border border-l-0 px-3 py-2 rounded-r-md"
+                placeholder="Número de WhatsApp"
+                required
+                maxLength={9}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Digite apenas os 9 dígitos do número</p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-3">
