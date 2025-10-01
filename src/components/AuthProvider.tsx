@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getSession as getAppSession, setSession, clearSession } from "@/utils/auth";
+import { getSession, setSession, clearSession, parseRolesFromProfile, getDefaultRole } from "@/utils/auth";
 
 type ProfileRow = {
   user_id: string;
@@ -13,25 +13,11 @@ type ProfileRow = {
   address?: string | null;
   role?: string | null;
   user_type?: string | null;
+  store_name?: string | null;
+  store_category?: string | null;
+  professional_name?: string | null;
+  professional_profession?: string | null;
 };
-
-function mapRole(profile?: ProfileRow): "client" | "vendor" | "provider" | "admin" | null {
-  if (!profile) return null;
-  
-  const raw = (profile.role || profile.user_type || "").toLowerCase();
-  
-  if (raw.includes('vendor') || raw.includes('lojista') || raw.includes('vendedor')) {
-    return 'vendor';
-  }
-  if (raw.includes('provider') || raw.includes('prestador')) {
-    return 'provider';
-  }
-  if (raw.includes('admin')) {
-    return 'admin';
-  }
-  
-  return 'client';
-}
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -73,7 +59,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       }
 
       if (!prof) {
-        // Sem perfil: redireciona para completar cadastro apenas se não estiver já numa página de registro
+        // Sem perfil: redireciona para completar cadastro
         const registerPages = ['/cliente/register', '/vendedor/register', '/prestador/register', '/login'];
         if (!registerPages.includes(location.pathname)) {
           navigate("/cliente/register");
@@ -82,11 +68,20 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      const role = mapRole(prof);
+      // Parsear múltiplos roles
+      const roles = parseRolesFromProfile(prof);
+      const currentSession = getSession();
+      
+      // Determinar role ativo (manter o atual se válido, senão usar padrão)
+      let activeRole = getDefaultRole(roles);
+      if (currentSession && roles.includes(currentSession.activeRole)) {
+        activeRole = currentSession.activeRole;
+      }
 
-      // Atualiza sessão local
+      // Atualizar sessão local
       setSession({
-        role,
+        roles,
+        activeRole,
         name: prof.full_name || undefined,
         email: prof.email || undefined,
         phone: prof.phone || undefined,
@@ -128,7 +123,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     };
   }, [syncFromSupabase, navigate]);
 
-  // Mostrar loading enquanto inicializa
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">

@@ -129,7 +129,14 @@ export default function VendorRegister() {
       }
     }
 
-    setSession({ role: "vendor", name: storeName, phone, email, address });
+    setSession({ 
+      roles: ["client", "vendor"], 
+      activeRole: "vendor", 
+      name: storeName, 
+      phone, 
+      email, 
+      address 
+    });
     showSuccess("Cadastro de vendedor concluído!");
     navigate("/dashboard/vendedor");
   };

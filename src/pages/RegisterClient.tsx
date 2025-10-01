@@ -122,7 +122,8 @@ export default function RegisterClient() {
 
       // 4. Definir sessão local
       setSession({
-        role: 'client',
+        roles: ['client'],
+        activeRole: 'client',
         name,
         email,
         phone: formattedWhatsapp

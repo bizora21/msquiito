@@ -4,7 +4,7 @@ import HomeButton from "@/components/HomeButton";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { showError, showSuccess } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { setSession } from "@/utils/auth";
+import { setSession, parseRolesFromProfile, getDefaultRole } from "@/utils/auth";
 
 export default function Login() {
   const [search] = useSearchParams();
@@ -57,21 +57,14 @@ export default function Login() {
         return;
       }
 
-      // Mapear role
-      const role = profileData.user_type || profileData.role || 'client';
-      let mappedRole: "client" | "vendor" | "provider" | "admin" = 'client';
-      
-      if (role.includes('vendor') || role.includes('lojista')) {
-        mappedRole = 'vendor';
-      } else if (role.includes('provider') || role.includes('prestador')) {
-        mappedRole = 'provider';
-      } else if (role.includes('admin')) {
-        mappedRole = 'admin';
-      }
+      // Parsear múltiplos roles
+      const roles = parseRolesFromProfile(profileData);
+      const activeRole = getDefaultRole(roles);
 
       // Definir sessão local
       setSession({
-        role: mappedRole,
+        roles,
+        activeRole,
         name: profileData.full_name || undefined,
         email: profileData.email || undefined,
         phone: profileData.phone || undefined,
@@ -80,12 +73,12 @@ export default function Login() {
 
       showSuccess("Login realizado com sucesso!");
 
-      // Redirecionar baseado no tipo de usuário
+      // Redirecionar baseado no redirect ou role ativo
       const redirectTo = search.get('redirect');
       if (redirectTo) {
         navigate(redirectTo);
       } else {
-        switch(mappedRole) {
+        switch(activeRole) {
           case 'vendor':
             navigate("/dashboard/vendedor");
             break;

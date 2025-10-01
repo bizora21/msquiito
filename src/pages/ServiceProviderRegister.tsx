@@ -82,7 +82,13 @@ export default function ServiceProviderRegister() {
       return;
     }
 
-    setSession({ role: "provider", name: companyName, phone, email });
+    setSession({ 
+      roles: ["client", "provider"], 
+      activeRole: "provider", 
+      name: companyName, 
+      phone, 
+      email 
+    });
     showSuccess("Cadastro de prestador concluído!");
     navigate("/dashboard/prestador");
   };
