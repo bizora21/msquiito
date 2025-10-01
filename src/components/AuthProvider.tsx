@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getSession, setSession, clearSession, parseRolesFromProfile, getDefaultRole } from "@/utils/auth";
+import { setSession, clearSession, parseRoleFromProfile } from "@/utils/auth";
 
 type ProfileRow = {
   user_id: string;
@@ -13,10 +13,6 @@ type ProfileRow = {
   address?: string | null;
   role?: string | null;
   user_type?: string | null;
-  store_name?: string | null;
-  store_category?: string | null;
-  professional_name?: string | null;
-  professional_profession?: string | null;
 };
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -51,15 +47,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         .eq("user_id", uid)
         .maybeSingle<ProfileRow>();
 
-      if (profErr) {
-        console.error('Erro ao buscar perfil:', profErr);
-        clearSession();
-        setIsInitialized(true);
-        return;
-      }
-
-      if (!prof) {
-        // Sem perfil: redireciona para completar cadastro
+      if (profErr || !prof) {
         const registerPages = ['/cliente/register', '/vendedor/register', '/prestador/register', '/login'];
         if (!registerPages.includes(location.pathname)) {
           navigate("/cliente/register");
@@ -68,20 +56,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      // Parsear múltiplos roles
-      const roles = parseRolesFromProfile(prof);
-      const currentSession = getSession();
-      
-      // Determinar role ativo (manter o atual se válido, senão usar padrão)
-      let activeRole = getDefaultRole(roles);
-      if (currentSession && roles.includes(currentSession.activeRole)) {
-        activeRole = currentSession.activeRole;
-      }
+      // Determinar role
+      const role = parseRoleFromProfile(prof);
 
       // Atualizar sessão local
       setSession({
-        roles,
-        activeRole,
+        role,
         name: prof.full_name || undefined,
         email: prof.email || undefined,
         phone: prof.phone || undefined,

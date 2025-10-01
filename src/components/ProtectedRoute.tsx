@@ -28,11 +28,9 @@ export default function ProtectedRoute({ children, roles }: { children: React.Re
     return <Navigate to={`/cliente/register`} replace />;
   }
 
-  // Se rota exige roles específicos, verificar se o usuário tem pelo menos um dos roles necessários
+  // Se rota exige roles específicos, verificar se o usuário tem o role necessário
   if (roles && appSession) {
-    const hasRequiredRole = roles.some(requiredRole => 
-      appSession.roles.includes(requiredRole)
-    );
+    const hasRequiredRole = roles.includes(appSession.role);
     
     if (!hasRequiredRole) {
       return <Navigate to="/" replace />;

@@ -4,7 +4,7 @@ import HomeButton from "@/components/HomeButton";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { showError, showSuccess } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { setSession, parseRolesFromProfile, getDefaultRole } from "@/utils/auth";
+import { setSession, parseRoleFromProfile } from "@/utils/auth";
 
 export default function Login() {
   const [search] = useSearchParams();
@@ -57,14 +57,12 @@ export default function Login() {
         return;
       }
 
-      // Parsear múltiplos roles
-      const roles = parseRolesFromProfile(profileData);
-      const activeRole = getDefaultRole(roles);
+      // Determinar role
+      const role = parseRoleFromProfile(profileData);
 
       // Definir sessão local
       setSession({
-        roles,
-        activeRole,
+        role,
         name: profileData.full_name || undefined,
         email: profileData.email || undefined,
         phone: profileData.phone || undefined,
@@ -73,12 +71,12 @@ export default function Login() {
 
       showSuccess("Login realizado com sucesso!");
 
-      // Redirecionar baseado no redirect ou role ativo
+      // Redirecionar baseado no redirect ou role
       const redirectTo = search.get('redirect');
       if (redirectTo) {
         navigate(redirectTo);
       } else {
-        switch(activeRole) {
+        switch(role) {
           case 'vendor':
             navigate("/dashboard/vendedor");
             break;
