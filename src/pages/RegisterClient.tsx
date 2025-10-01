@@ -7,11 +7,11 @@ import HomeButton from "@/components/HomeButton";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function RegisterClient() {
-  const [name, setName] = React.useState<string>("");
-  const [email, setEmail] = React.useState<string>("");
-  const [password, setPassword] = React.useState<string>("");
-  const [confirm, setConfirm] = React.useState<string>("");
-  const [whatsapp, setWhatsapp] = React.useState<string>("");
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirm, setConfirm] = React.useState("");
+  const [whatsapp, setWhatsapp] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
@@ -19,60 +19,57 @@ export default function RegisterClient() {
     document.title = "Criar Conta de Cliente — LojaRápida";
   }, []);
 
-  // Função para formatar número de WhatsApp
   const formatWhatsAppNumber = (input: string) => {
-    // Remove todos os caracteres não numéricos
     const cleanedNumber = input.replace(/\D/g, '');
     
-    // Se já começar com 258, mantém
     if (cleanedNumber.startsWith('258')) {
       return `+${cleanedNumber}`;
     }
     
-    // Se começar com 8 ou 9, adiciona 258
     if (cleanedNumber.startsWith('8') || cleanedNumber.startsWith('9')) {
       return `+258${cleanedNumber}`;
     }
     
-    // Caso contrário, adiciona 258 e completa
     return `+258${cleanedNumber}`;
   };
 
   const validate = () => {
-    const errors: string[] = [];
-
-    if (!name.trim()) errors.push("Nome completo é obrigatório");
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) 
-      errors.push("E-mail inválido");
-    if (!password || password.length < 6) 
-      errors.push("Senha deve ter pelo menos 6 caracteres");
-    if (password !== confirm) 
-      errors.push("As senhas não coincidem");
+    if (!name.trim()) {
+      showError("Nome completo é obrigatório");
+      return false;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError("E-mail inválido");
+      return false;
+    }
+    if (!password || password.length < 6) {
+      showError("Senha deve ter pelo menos 6 caracteres");
+      return false;
+    }
+    if (password !== confirm) {
+      showError("As senhas não coincidem");
+      return false;
+    }
     
-    // Validação específica para número de WhatsApp de Moçambique
     const cleanedNumber = whatsapp.replace(/\D/g, '');
-    if (!cleanedNumber || cleanedNumber.length < 9) 
-      errors.push("Número de WhatsApp inválido");
+    if (!cleanedNumber || cleanedNumber.length < 9) {
+      showError("Número de WhatsApp inválido");
+      return false;
+    }
 
-    return errors;
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationErrors = validate();
-    if (validationErrors.length > 0) {
-      validationErrors.forEach(error => showError(error));
-      return;
-    }
+    if (!validate()) return;
 
-    // Formata o número de WhatsApp
     const formattedWhatsapp = formatWhatsAppNumber(whatsapp);
-
     setLoading(true);
 
     try {
-      // Signup with Supabase
+      // 1. Criar conta no Supabase Auth
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
@@ -80,50 +77,50 @@ export default function RegisterClient() {
           data: {
             full_name: name,
             whatsapp: formattedWhatsapp,
-            role: 'client',
-            user_type: 'client'
           }
         }
       });
 
       if (signupError) {
-        showError(signupError.message || "Erro ao criar conta");
-        setLoading(false);
+        if (signupError.message.includes('already registered')) {
+          showError("Este e-mail já está cadastrado. Tente fazer login.");
+        } else {
+          showError("Erro ao criar conta: " + signupError.message);
+        }
         return;
       }
 
-      // Get the current session
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-
-      if (!user) {
-        showError("Não foi possível completar o cadastro");
-        setLoading(false);
+      if (!signupData.user) {
+        showError("Erro ao criar usuário");
         return;
       }
 
-      // Create or update profile
+      // 2. Verificar se precisa confirmar e-mail
+      if (!signupData.session) {
+        showSuccess("Conta criada! Verifique seu e-mail para confirmar e depois faça login.");
+        navigate("/login");
+        return;
+      }
+
+      // 3. Criar perfil na tabela profiles
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
+        .insert({
+          user_id: signupData.user.id,
           full_name: name,
           email,
           phone: formattedWhatsapp,
           role: 'client',
           user_type: 'client',
           updated_at: new Date().toISOString()
-        }, { 
-          onConflict: 'user_id' 
         });
 
       if (profileError) {
-        showError("Erro ao salvar perfil");
-        setLoading(false);
+        showError("Erro ao criar perfil: " + profileError.message);
         return;
       }
 
-      // Set local session
+      // 4. Definir sessão local
       setSession({
         role: 'client',
         name,
@@ -132,11 +129,10 @@ export default function RegisterClient() {
       });
 
       showSuccess("Conta criada com sucesso!");
-      
-      // Redirect to client dashboard
       navigate('/dashboard/cliente');
 
     } catch (err) {
+      console.error('Erro no cadastro:', err);
       showError("Erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
@@ -148,6 +144,8 @@ export default function RegisterClient() {
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Criar Conta de Cliente</h2>
+        <p className="text-sm text-slate-600 mt-2">Junte-se à LojaRápida e comece a comprar</p>
+        
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="text-sm block mb-1" htmlFor="name">Nome Completo *</label>
@@ -158,6 +156,7 @@ export default function RegisterClient() {
               onChange={(e) => setName(e.target.value)}
               className="w-full border px-3 py-2 rounded-md"
               required
+              disabled={loading}
             />
           </div>
 
@@ -170,6 +169,7 @@ export default function RegisterClient() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border px-3 py-2 rounded-md"
               required
+              disabled={loading}
             />
           </div>
 
@@ -183,9 +183,10 @@ export default function RegisterClient() {
                 value={whatsapp.replace(/^(\+258)?/, '')}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 className="w-full border border-l-0 px-3 py-2 rounded-r-md"
-                placeholder="Número de WhatsApp"
+                placeholder="Digite os 9 dígitos"
                 required
                 maxLength={9}
+                disabled={loading}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">Digite apenas os 9 dígitos do número</p>
@@ -202,6 +203,7 @@ export default function RegisterClient() {
                 className="w-full border px-3 py-2 rounded-md"
                 minLength={6}
                 required
+                disabled={loading}
               />
             </div>
             <div>
@@ -214,6 +216,7 @@ export default function RegisterClient() {
                 className="w-full border px-3 py-2 rounded-md"
                 minLength={6}
                 required
+                disabled={loading}
               />
             </div>
           </div>
