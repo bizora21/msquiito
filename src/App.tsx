@@ -3,8 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Added
-import { Label } from "@/components/ui/label"; // Added
 
 import Index from "./pages/Index";
 import Blog from "./pages/Blog";
@@ -26,7 +24,14 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthProvider from "./components/AuthProvider";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
