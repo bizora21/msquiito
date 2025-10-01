@@ -2,9 +2,8 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { setSession } from "@/utils/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import HomeButton from "@/components/HomeButton";
-import { sendSignupNotifications } from "@/utils/notifications";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function RegisterClient() {
@@ -13,77 +12,200 @@ export default function RegisterClient() {
   const [password, setPassword] = React.useState<string>("");
   const [confirm, setConfirm] = React.useState<string>("");
   const [whatsapp, setWhatsapp] = React.useState<string>("");
-  const [address, setAddress] = React.useState<string>("");
-  const [altPhone, setAltPhone] = React.useState<string>("");
-  const [emailSent, setEmailSent] = React.useState(false);
-
-  const [errors, setErrors] = React.useState<Partial<Record<string, string>>>({});
-  const [submitting, setSubmitting] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    document.title = "Criar conta de Cliente — LojaRápida";
+    document.title = "Criar Conta de Cliente — LojaRápida";
   }, []);
 
-  // Added validate function
-  const validate = (): boolean => {
-    const nextErrors: Partial<Record<string, string>> = {};
-    if (!name?.trim()) nextErrors.name = "Nome é obrigatório";
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Email inválido";
-    if (!password || password.length < 6) nextErrors.password = "Senha deve ter pelo menos 6 caracteres";
-    if (confirm !== password) nextErrors.confirm = "As senhas não coincidem";
-    if (!whatsapp?.trim()) nextErrors.whatsapp = "WhatsApp é obrigatório";
-    if (!address?.trim()) nextErrors.address = "Endereço é obrigatório";
-    
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+  const validate = () => {
+    const errors: string[] = [];
+
+    if (!name.trim()) errors.push("Nome completo é obrigatório");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) 
+      errors.push("E-mail inválido");
+    if (!password || password.length < 6) 
+      errors.push("Senha deve ter pelo menos 6 caracteres");
+    if (password !== confirm) 
+      errors.push("As senhas não coincidem");
+    if (!whatsapp.trim()) 
+      errors.push("Número de WhatsApp é obrigatório");
+
+    return errors;
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
-
-    setSubmitting(true);
     
+    const validationErrors = validate();
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => showError(error));
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Signup with Supabase
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + '/login',
-          data: { 
+          data: {
             full_name: name,
-            role: 'cliente',
+            whatsapp,
+            role: 'client',
             user_type: 'client'
           }
         }
       });
 
-      if (error) {
-        showError(error.message || "Erro ao criar conta");
+      if (signupError) {
+        showError(signupError.message || "Erro ao criar conta");
+        setLoading(false);
         return;
       }
 
-      // Rest of the existing signup logic...
-      setSubmitting(false);
+      // Get the current session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+
+      if (!user) {
+        showError("Não foi possível completar o cadastro");
+        setLoading(false);
+        return;
+      }
+
+      // Create or update profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          full_name: name,
+          email,
+          phone: whatsapp,
+          role: 'client',
+          user_type: 'client',
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'user_id' 
+        });
+
+      if (profileError) {
+        showError("Erro ao salvar perfil");
+        setLoading(false);
+        return;
+      }
+
+      // Set local session
+      setSession({
+        role: 'client',
+        name,
+        email,
+        phone: whatsapp
+      });
+
+      showSuccess("Conta criada com sucesso!");
+      
+      // Redirect to client dashboard
+      navigate('/dashboard/cliente');
+
     } catch (err) {
       showError("Erro inesperado. Tente novamente.");
-      setSubmitting(false);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Existing render logic...
   return (
     <main className="pt-24 max-w-2xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
       <HomeButton />
       <div className="bg-white border rounded-md p-6">
         <h2 className="text-xl font-semibold">Criar Conta de Cliente</h2>
-        <form onSubmit={onSubmit} className="mt-4 space-y-3">
-          {/* Form fields */}
-          <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? "Cadastrando..." : "Criar Conta"}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div>
+            <label className="text-sm block mb-1" htmlFor="name">Nome Completo *</label>
+            <input 
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm block mb-1" htmlFor="email">E-mail *</label>
+            <input 
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm block mb-1" htmlFor="whatsapp">WhatsApp *</label>
+            <input 
+              id="whatsapp"
+              type="tel"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md"
+              placeholder="Número com DDD"
+              required
+            />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm block mb-1" htmlFor="password">Senha *</label>
+              <input 
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border px-3 py-2 rounded-md"
+                minLength={6}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm block mb-1" htmlFor="confirm">Confirmar Senha *</label>
+              <input 
+                id="confirm"
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="w-full border px-3 py-2 rounded-md"
+                minLength={6}
+                required
+              />
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+          >
+            {loading ? "Criando conta..." : "Criar Conta"}
           </Button>
         </form>
+
+        <div className="mt-4 text-center text-sm">
+          Já tem conta? 
+          <Link 
+            to="/login" 
+            className="text-blue-600 hover:underline ml-1"
+          >
+            Faça login
+          </Link>
+        </div>
       </div>
     </main>
   );

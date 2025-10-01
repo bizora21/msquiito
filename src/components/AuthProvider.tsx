@@ -18,7 +18,6 @@ type ProfileRow = {
 function mapRole(profile?: ProfileRow): "client" | "vendor" | "provider" | "admin" | null {
   const raw = (profile?.role || profile?.user_type || "").toLowerCase();
   
-  // Mapeamento mais detalhado e explícito
   const roleMap = {
     'client': ['cliente', 'client'],
     'vendor': ['vendor', 'lojista', 'vendedor'],
@@ -70,25 +69,15 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
 
     const role = mapRole(prof) ?? "client";
-    const appSession = getAppSession();
 
     // Atualiza sessão local
-    if (
-      !appSession ||
-      appSession.role !== role ||
-      appSession.name !== (prof.full_name || undefined) ||
-      appSession.email !== (prof.email || undefined) ||
-      appSession.phone !== (prof.phone || undefined) ||
-      appSession.address !== (prof.address || undefined)
-    ) {
-      setSession({
-        role,
-        name: prof.full_name || undefined,
-        email: prof.email || undefined,
-        phone: prof.phone || undefined,
-        address: prof.address || undefined,
-      });
-    }
+    setSession({
+      role,
+      name: prof.full_name || undefined,
+      email: prof.email || undefined,
+      phone: prof.phone || undefined,
+      address: prof.address || undefined,
+    });
 
     // Redireciona após login de acordo com o papel
     if (location.pathname === "/login") {
