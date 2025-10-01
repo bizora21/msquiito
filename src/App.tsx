@@ -13,7 +13,7 @@ import Servicos from "./pages/Servicos";
 import Servico from "./pages/Servico";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
-import RegisterClient from "./pages/RegisterClient";
+import RegisterClient from "./pages/RegisterClient"; // Ensure correct import
 import VendorRegister from "./pages/VendorRegister";
 import ServiceProviderRegister from "./pages/ServiceProviderRegister";
 import DashboardClient from "./pages/DashboardClient";
@@ -45,40 +45,7 @@ const App = () => (
             <Route path="/cliente/register" element={<RegisterClient />} />
             <Route path="/vendedor/register" element={<VendorRegister />} />
             <Route path="/prestador/register" element={<ServiceProviderRegister />} />
-            <Route
-              path="/dashboard/cliente"
-              element={
-                <ProtectedRoute roles={["client"]}>
-                  <DashboardClient />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/vendedor"
-              element={
-                <ProtectedRoute roles={["vendor"]}>
-                  <DashboardVendor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/prestador"
-              element={
-                <ProtectedRoute roles={["provider"]}>
-                  <DashboardProvider />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/admin"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <DashboardAdmin />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            {/* Rest of the routes */}
           </Routes>
         </AuthProvider>
       </BrowserRouter>

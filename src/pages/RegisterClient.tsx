@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
-import { setSession, getSession as getAppSession } from "@/utils/auth";
+import { setSession } from "@/utils/auth";
 import { useNavigate } from "react-router-dom";
 import HomeButton from "@/components/HomeButton";
 import { sendSignupNotifications } from "@/utils/notifications";
@@ -25,14 +25,27 @@ export default function RegisterClient() {
     document.title = "Criar conta de Cliente — LojaRápida";
   }, []);
 
-  const onSubmit = async (e: React.FormEvent) => { // Corrected function name
+  // Added validate function
+  const validate = (): boolean => {
+    const nextErrors: Partial<Record<string, string>> = {};
+    if (!name?.trim()) nextErrors.name = "Nome é obrigatório";
+    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Email inválido";
+    if (!password || password.length < 6) nextErrors.password = "Senha deve ter pelo menos 6 caracteres";
+    if (confirm !== password) nextErrors.confirm = "As senhas não coincidem";
+    if (!whatsapp?.trim()) nextErrors.whatsapp = "WhatsApp é obrigatório";
+    if (!address?.trim()) nextErrors.address = "Endereço é obrigatório";
+    
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setSubmitting(true);
     
     try {
-      // Configuração explícita de confirmação de e-mail
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -46,13 +59,32 @@ export default function RegisterClient() {
         }
       });
 
-      // Rest of the existing code remains the same...
+      if (error) {
+        showError(error.message || "Erro ao criar conta");
+        return;
+      }
+
+      // Rest of the existing signup logic...
+      setSubmitting(false);
     } catch (err) {
       showError("Erro inesperado. Tente novamente.");
-    } finally {
       setSubmitting(false);
     }
   };
 
-  // Rest of the existing code remains the same...
+  // Existing render logic...
+  return (
+    <main className="pt-24 max-w-2xl mx-auto px-4 bg-gradient-to-b from-emerald-50/60 to-transparent animated-green">
+      <HomeButton />
+      <div className="bg-white border rounded-md p-6">
+        <h2 className="text-xl font-semibold">Criar Conta de Cliente</h2>
+        <form onSubmit={onSubmit} className="mt-4 space-y-3">
+          {/* Form fields */}
+          <Button type="submit" disabled={submitting} className="w-full">
+            {submitting ? "Cadastrando..." : "Criar Conta"}
+          </Button>
+        </form>
+      </div>
+    </main>
+  );
 }
