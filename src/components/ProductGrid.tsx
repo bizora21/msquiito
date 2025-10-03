@@ -1,9 +1,9 @@
 import React from "react";
 import ProductCard from "./ProductCard";
-import { getAllProducts } from "@/lib/catalog";
+import { useCatalog } from "@/hooks/use-catalog";
 
 export default function ProductGrid({ limit }: { limit?: number }) {
-  const items = getAllProducts();
+  const { items, isLoading } = useCatalog();
   const list = typeof limit === "number" ? items.slice(0, limit) : items;
 
   return (
@@ -14,13 +14,21 @@ export default function ProductGrid({ limit }: { limit?: number }) {
           <a href="/produtos" className="text-sm text-blue-600 hover:underline">Ver todos</a>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {list.map((p) => (
-            <div key={p.id} className="animate-in fade-in-50">
-              <ProductCard product={p} />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {Array.from({ length: limit || 8 }).map((_, i) => (
+              <div key={i} className="h-56 bg-white border rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {list.map((p) => (
+              <div key={p.id} className="animate-in fade-in-50">
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

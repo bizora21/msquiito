@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Index from "./pages/Index";
 import Blog from "./pages/Blog";
 import Article from "./pages/Article";
@@ -23,7 +24,14 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthProvider from "./components/AuthProvider";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -45,39 +53,13 @@ const App = () => (
             <Route path="/cliente/register" element={<RegisterClient />} />
             <Route path="/vendedor/register" element={<VendorRegister />} />
             <Route path="/prestador/register" element={<ServiceProviderRegister />} />
-            <Route
-              path="/dashboard/cliente"
-              element={
-                <ProtectedRoute roles={["client"]}>
-                  <DashboardClient />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/vendedor"
-              element={
-                <ProtectedRoute roles={["vendor"]}>
-                  <DashboardVendor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/prestador"
-              element={
-                <ProtectedRoute roles={["provider"]}>
-                  <DashboardProvider />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/admin"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <DashboardAdmin />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Rotas protegidas */}
+            <Route path="/dashboard/cliente" element={<ProtectedRoute roles={["client"]}><DashboardClient /></ProtectedRoute>} />
+            <Route path="/dashboard/vendedor" element={<ProtectedRoute roles={["vendor"]}><DashboardVendor /></ProtectedRoute>} />
+            <Route path="/dashboard/prestador" element={<ProtectedRoute roles={["provider"]}><DashboardProvider /></ProtectedRoute>} />
+            <Route path="/dashboard/admin" element={<ProtectedRoute roles={["admin"]}><DashboardAdmin /></ProtectedRoute>} />
+            
+            {/* Rota 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -1,7 +1,29 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getSession, clearSession, getRole } from "@/utils/auth";
+import { getSession, clearSession, type UserRole } from "@/utils/auth";
 import { Button } from "@/components/ui/button";
+import { User, Store, Briefcase, Shield } from "lucide-react";
+
+const roleIcons = {
+  client: User,
+  vendor: Store,
+  provider: Briefcase,
+  admin: Shield
+};
+
+const roleLabels = {
+  client: "Cliente",
+  vendor: "Vendedor", 
+  provider: "Prestador",
+  admin: "Admin"
+};
+
+const roleDashboards = {
+  client: "/dashboard/cliente",
+  vendor: "/dashboard/vendedor",
+  provider: "/dashboard/prestador", 
+  admin: "/dashboard/admin"
+};
 
 export default function UserMenu() {
   const [session, setSession] = React.useState(getSession());
@@ -25,31 +47,24 @@ export default function UserMenu() {
     );
   }
 
-  const role = getRole();
+  const handleLogout = () => {
+    clearSession();
+    setSession(null);
+    navigate("/");
+  };
+
+  const Icon = roleIcons[session.role];
 
   return (
     <div className="flex items-center gap-2">
-      {role === "client" && (
-        <Link to="/dashboard/cliente" className="text-sm text-slate-700 hover:text-slate-900">Minha Conta</Link>
-      )}
-      {role === "vendor" && (
-        <Link to="/dashboard/vendedor" className="text-sm text-slate-700 hover:text-slate-900">Dashboard Vendedor</Link>
-      )}
-      {role === "provider" && (
-        <Link to="/dashboard/prestador" className="text-sm text-slate-700 hover:text-slate-900">Dashboard Prestador</Link>
-      )}
-      {role === "admin" && (
-        <Link to="/dashboard/admin" className="text-sm text-slate-700 hover:text-slate-900">Admin</Link>
-      )}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          clearSession();
-          setSession(null);
-          navigate("/");
-        }}
-      >
+      <Link to={roleDashboards[session.role]}>
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Icon size={16} />
+          {roleLabels[session.role]}
+        </Button>
+      </Link>
+
+      <Button variant="ghost" size="sm" onClick={handleLogout}>
         Sair
       </Button>
     </div>

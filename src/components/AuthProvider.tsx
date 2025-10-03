@@ -3,71 +3,116 @@
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getSession as getAppSession, setSession } from "@/utils/auth";
+import { setSession, clearSession, parseRoleFromProfile } from "@/utils/auth";
+
+type ProfileRow = {
+  user_id: string;
+  full_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  role?: string | null;
+  user_type?: string | null;
+};
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isInitialized, setIsInitialized] = React.useState(false);
+
+  const syncFromSupabase = React.useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const sbSession = data.session;
+
+      if (!sbSession) {
+        clearSession();
+        setIsInitialized(true);
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      
+      if (!uid) {
+        clearSession();
+        setIsInitialized(true);
+        return;
+      }
+
+      // Buscar perfil
+      const { data: prof, error: profErr } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", uid)
+        .maybeSingle<ProfileRow>();
+
+      if (profErr || !prof) {
+        const registerPages = ['/cliente/register', '/vendedor/register', '/prestador/register', '/login'];
+        if (!registerPages.includes(location.pathname)) {
+          navigate("/cliente/register");
+        }
+        setIsInitialized(true);
+        return;
+      }
+
+      // Determinar role
+      const role = parseRoleFromProfile(prof);
+
+      // Atualizar sessão local
+      setSession({
+        role,
+        name: prof.full_name || undefined,
+        email: prof.email || undefined,
+        phone: prof.phone || undefined,
+        address: prof.address || undefined,
+      });
+
+      setIsInitialized(true);
+
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+      clearSession();
+      setIsInitialized(true);
+    }
+  }, [location.pathname, navigate]);
 
   React.useEffect(() => {
     let mounted = true;
 
-    const handleAuthChange = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sbSession = data.session;
-      const appSession = getAppSession();
-
-      // Quando houver sessão Supabase
-      if (sbSession) {
-        // Se não existe session local do app, criamos uma básica para desbloquear fluxo
-        // e direcionamos o usuário a completar o cadastro (perfil) — evita "entrar aleatoriamente".
-        if (!appSession) {
-          const user = sbSession.user;
-          // Preenchemos o mínimo: role client e email (se disponível)
-          setSession({
-            role: "client",
-            name: (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || undefined,
-            email: user.email || undefined,
-            phone: undefined,
-            address: undefined,
-            altPhone: undefined,
-          });
-
-          // Se o usuário estava na página de login, levamos ao form de cadastro para completar dados
-          if (location.pathname === "/login" || location.pathname === "/") {
-            navigate("/cliente/register", { replace: true });
-            return;
-          }
-        } else {
-          // Se já existe session local, e estivermos na página de login, redirecionamos por role
-          if (location.pathname === "/login") {
-            const role = appSession.role;
-            if (role === "vendor") navigate("/dashboard/vendedor", { replace: true });
-            else if (role === "provider") navigate("/dashboard/prestador", { replace: true });
-            else navigate("/produtos", { replace: true });
-            return;
-          }
-        }
-      } else {
-        // Sem sessão Supabase: se estiver em rota protegida, manda para login
-        if (location.pathname.startsWith("/dashboard") || location.pathname === "/checkout") {
-          navigate("/login", { replace: true });
-        }
-      }
-    };
-
-    handleAuthChange();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
+    const init = async () => {
       if (!mounted) return;
-      handleAuthChange();
+      await syncFromSupabase();
+    };
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      if (event === 'SIGNED_OUT') {
+        clearSession();
+        navigate('/');
+      } else if (event === 'SIGNED_IN' && session) {
+        await syncFromSupabase();
+      }
     });
 
     return () => {
       mounted = false;
       listener.subscription.unsubscribe();
     };
-  }, [location.pathname, location.search, navigate]);
+  }, [syncFromSupabase, navigate]);
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

@@ -3,10 +3,9 @@ export type UserRole = "client" | "vendor" | "provider" | "admin";
 export type Session = {
   role: UserRole;
   name?: string;
-  phone?: string;      // WhatsApp principal
+  phone?: string;
   email?: string;
-  address?: string;    // Endereço completo
-  altPhone?: string;   // Telefone adicional
+  address?: string;
 };
 
 const KEY = "lr_session";
@@ -32,6 +31,20 @@ export function getRole(): UserRole | null {
   return getSession()?.role ?? null;
 }
 
+export function hasRole(role: UserRole): boolean {
+  return getRole() === role;
+}
+
 export function isLoggedIn() {
   return !!getSession();
+}
+
+export function parseRoleFromProfile(profile: any): UserRole {
+  const mainRole = (profile.role || profile.user_type || "").toLowerCase();
+  
+  if (mainRole.includes('vendor') || mainRole.includes('lojista')) return 'vendor';
+  if (mainRole.includes('provider') || mainRole.includes('prestador')) return 'provider';
+  if (mainRole.includes('admin')) return 'admin';
+  
+  return 'client';
 }

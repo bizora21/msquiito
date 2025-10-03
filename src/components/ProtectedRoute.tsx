@@ -1,12 +1,14 @@
+"use client";
+
 import * as React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getSession as getAppSession, type UserRole } from "@/utils/auth";
+import { getSession, type UserRole } from "@/utils/auth";
 import { useSupabaseSession } from "@/integrations/supabase/useSupabaseSession";
 
 export default function ProtectedRoute({ children, roles }: { children: React.ReactElement; roles?: UserRole[] }) {
   const location = useLocation();
   const { session, loading } = useSupabaseSession();
-  const appSession = getAppSession();
+  const appSession = getSession();
 
   if (loading) {
     return (
@@ -16,19 +18,23 @@ export default function ProtectedRoute({ children, roles }: { children: React.Re
     );
   }
 
-  // Se não há sessão Supabase, pede login (redireciona à tela de login)
+  // Se não há sessão Supabase, pede login
   if (!session) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // Se existe sessão Supabase mas não existe profile local (role), direciona ao cadastro para completar
+  // Se existe sessão Supabase mas não existe profile local, direciona ao cadastro
   if (session && !appSession) {
     return <Navigate to={`/cliente/register`} replace />;
   }
 
-  // Se rota exige roles e o role local não bate, manda para home
-  if (roles && (!appSession || !roles.includes(appSession.role))) {
-    return <Navigate to="/" replace />;
+  // Se rota exige roles específicos, verificar se o usuário tem o role necessário
+  if (roles && appSession) {
+    const hasRequiredRole = roles.includes(appSession.role);
+    
+    if (!hasRequiredRole) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;

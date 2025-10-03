@@ -5,13 +5,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { showSuccess } from "@/utils/toast";
-import { getVendorProducts, addVendorProduct, updateVendorProduct, removeVendorProduct, type VendorProduct } from "@/utils/vendor-products";
+import { showSuccess, showError } from "@/utils/toast";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  listMyVendorProducts,
+  insertVendorProduct,
+  updateVendorProductById,
+  deleteVendorProductById,
+  type SbVendorProduct,
+} from "@/utils/sb-products";
 
 type Draft = {
-  id?: string;
   name: string;
   price: number;
   image?: string;
@@ -20,10 +26,6 @@ type Draft = {
   description?: string;
   stock?: number;
 };
-
-function newId() {
-  return "vp_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
 
 const CATEGORIES = [
   "Eletrónica",
@@ -38,7 +40,8 @@ const CATEGORIES = [
 ];
 
 export default function VendorProductManager() {
-  const [items, setItems] = React.useState<VendorProduct[]>(() => getVendorProducts());
+  const [userId, setUserId] = React.useState<string | null>(null);
+  const [items, setItems] = React.useState<SbVendorProduct[]>([]);
   const [draft, setDraft] = React.useState<Draft>({
     name: "",
     price: 0,
@@ -50,38 +53,65 @@ export default function VendorProductManager() {
   });
   const [editing, setEditing] = React.useState<string | null>(null);
   const [filter, setFilter] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
 
-  const reload = () => setItems(getVendorProducts());
+  React.useEffect(() => {
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id || null;
+      setUserId(uid);
+      if (!uid) {
+        setLoading(false);
+        return;
+      }
+      await reload(uid);
+      setLoading(false);
+    };
+    init();
+  }, []);
 
-  const onCreate = (e: React.FormEvent) => {
+  const reload = async (uid = userId) => {
+    if (!uid) return;
+    const list = await listMyVendorProducts(uid);
+    setItems(list);
+  };
+
+  const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = newId();
-    addVendorProduct({
-      id,
+    if (!userId) {
+      showError("Sessão inválida. Entre novamente.");
+      return;
+    }
+    if (!draft.name.trim()) {
+      showError("Informe o nome do produto.");
+      return;
+    }
+    const payload = {
       name: draft.name.trim(),
       price: Number(draft.price || 0),
       image: draft.image?.trim() || "/placeholder.svg",
-      rating: draft.rating,
-      category: draft.category?.trim(),
-      description: draft.description?.trim(),
+      rating: draft.rating || null,
+      category: draft.category?.trim() || null,
+      description: draft.description?.trim() || null,
       stock: Number(draft.stock || 0),
-    });
+    };
+    await insertVendorProduct(payload);
     showSuccess("Produto adicionado");
     setDraft({ name: "", price: 0, image: "", rating: 4.5, category: "", description: "", stock: 1 });
-    reload();
+    await reload();
   };
 
-  const onSaveRow = (id: string, data: Partial<VendorProduct>) => {
-    updateVendorProduct(id, data);
+  const onSaveRow = async (id: string, data: Partial<SbVendorProduct>) => {
+    await updateVendorProductById(id, data);
     setEditing(null);
     showSuccess("Produto atualizado");
-    reload();
+    await reload();
   };
 
-  const onDelete = (id: string) => {
-    removeVendorProduct(id);
+  const onDelete = async (id: string) => {
+    await deleteVendorProductById(id);
     showSuccess("Produto removido");
-    reload();
+    await reload();
   };
 
   const visible = items.filter((i) => {
@@ -89,6 +119,14 @@ export default function VendorProductManager() {
     if (!q) return true;
     return [i.name, i.category, i.description].filter(Boolean).some((t) => (t as string).toLowerCase().includes(q));
   });
+
+  if (loading) {
+    return <div className="mt-6 text-sm text-slate-600">Carregando...</div>;
+  }
+
+  if (!userId) {
+    return <div className="mt-6 text-sm text-slate-600">Entre na sua conta de vendedor para gerir os produtos.</div>;
+  }
 
   return (
     <Tabs defaultValue="list" className="mt-6">
@@ -127,45 +165,12 @@ export default function VendorProductManager() {
                   <div className="space-y-1">
                     {editing === p.id ? (
                       <div className="grid sm:grid-cols-2 gap-2">
-                        <Input 
-                          defaultValue={p.name} 
-                          onChange={(e) => (p.name = e.target.value)} 
-                          aria-label="Nome do produto"
-                        />
-                        <Input 
-                          type="number" 
-                          defaultValue={p.price} 
-                          onChange={(e) => (p.price = Number(e.target.value))} 
-                          aria-label="Preço do produto"
-                        />
-                        <Input 
-                          defaultValue={p.image} 
-                          onChange={(e) => (p.image = e.target.value)} 
-                          placeholder="URL da imagem" 
-                          className="sm:col-span-2"
-                          aria-label="URL da imagem do produto"
-                        />
-                        <Input 
-                          defaultValue={p.category} 
-                          onChange={(e) => (p.category = e.target.value)} 
-                          placeholder="Categoria"
-                          aria-label="Categoria do produto"
-                        />
-                        <Input 
-                          type="number" 
-                          defaultValue={p.rating || 0} 
-                          step="0.1" 
-                          onChange={(e) => (p.rating = Number(e.target.value))} 
-                          placeholder="Rating"
-                          aria-label="Avaliação do produto"
-                        />
-                        <Textarea 
-                          defaultValue={p.description} 
-                          onChange={(e) => (p.description = e.target.value)} 
-                          placeholder="Descrição" 
-                          className="sm:col-span-2"
-                          aria-label="Descrição do produto"
-                        />
+                        <Input defaultValue={p.name} onChange={(e) => (p.name = e.target.value)} aria-label="Nome do produto" />
+                        <Input type="number" defaultValue={Number(p.price)} onChange={(e) => (p.price = Number(e.target.value))} aria-label="Preço do produto" />
+                        <Input defaultValue={p.image || ""} onChange={(e) => (p.image = e.target.value)} placeholder="URL da imagem" className="sm:col-span-2" aria-label="URL da imagem do produto" />
+                        <Input defaultValue={p.category || ""} onChange={(e) => (p.category = e.target.value)} placeholder="Categoria" aria-label="Categoria do produto" />
+                        <Input type="number" defaultValue={p.rating ? Number(p.rating) : 0} step="0.1" onChange={(e) => (p.rating = Number(e.target.value))} placeholder="Rating" aria-label="Avaliação do produto" />
+                        <Textarea defaultValue={p.description || ""} onChange={(e) => (p.description = e.target.value)} placeholder="Descrição" className="sm:col-span-2" aria-label="Descrição do produto" />
                       </div>
                     ) : (
                       <>
@@ -178,7 +183,7 @@ export default function VendorProductManager() {
                   <div className="flex items-center gap-2 self-start">
                     {editing === p.id ? (
                       <>
-                        <Button size="icon" variant="outline" onClick={() => onSaveRow(p.id, p)} aria-label="Salvar alterações">
+                        <Button size="icon" variant="outline" onClick={() => onSaveRow(p.id!, p)} aria-label="Salvar alterações">
                           <Check size={16} />
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => setEditing(null)} aria-label="Cancelar edição">
@@ -187,10 +192,10 @@ export default function VendorProductManager() {
                       </>
                     ) : (
                       <>
-                        <Button size="icon" variant="outline" onClick={() => setEditing(p.id)} aria-label={`Editar produto ${p.name}`}>
+                        <Button size="icon" variant="outline" onClick={() => setEditing(p.id!)} aria-label={`Editar produto ${p.name}`}>
                           <Pencil size={16} />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(p.id)} aria-label={`Remover produto ${p.name}`}>
+                        <Button size="icon" variant="ghost" onClick={() => onDelete(p.id!)} aria-label={`Remover produto ${p.name}`}>
                           <Trash2 size={16} />
                         </Button>
                       </>
